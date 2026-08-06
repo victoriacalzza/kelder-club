@@ -1,0 +1,142 @@
+@import "tailwindcss";
+
+@theme {
+  /* Kelder red — reserved for primary actions, active states, important CTAs only */
+  --color-kelder-50: #fef2f2;
+  --color-kelder-100: #fde3e3;
+  --color-kelder-200: #fbc9c9;
+  --color-kelder-300: #f7a3a3;
+  --color-kelder-400: #f06d6d;
+  --color-kelder-500: #e5333a;
+  --color-kelder-600: #d3122a;
+  --color-kelder-700: #b00d24;
+  --color-kelder-800: #8f0e22;
+  --color-kelder-900: #7a1020;
+
+  /* Neutral surfaces — the bulk of the UI lives here */
+  --color-ink-950: #14121a;
+  --color-ink-900: #1c1a24;
+  --color-ink-700: #4a4653;
+  --color-ink-500: #75717d;
+  --color-ink-400: #98949f;
+  --color-ink-300: #bcb9c1;
+  --color-ink-200: #ded9e0;
+  --color-ink-100: #eeebef;
+  --color-ink-50: #f6f4f7;
+
+  /* Warm surface — cream background gives the product a friendlier, less corporate feel */
+  --color-cream: #faf7f5;
+
+  /* Semantic, never color-only in the UI (always paired with icon/text) */
+  --color-success-700: #0f6b40;
+  --color-success-600: #157a4a;
+  --color-success-100: #dcf5e7;
+  --color-warning-700: #8a4f00;
+  --color-warning-600: #a15c00;
+  --color-warning-100: #fdecd1;
+  --color-info-700: #1e5aa8;
+  --color-info-100: #dbe9fb;
+
+  --font-sans: "Inter", system-ui, "Segoe UI", Roboto, sans-serif;
+
+  --shadow-soft: 0 1px 2px 0 rgb(20 18 26 / 0.04), 0 2px 8px -2px rgb(20 18 26 / 0.06);
+  --shadow-card: 0 2px 4px 0 rgb(20 18 26 / 0.04), 0 8px 24px -8px rgb(20 18 26 / 0.10);
+  --shadow-modal: 0 12px 32px -8px rgb(20 18 26 / 0.24);
+
+  --radius-2xl: 1.25rem;
+  --radius-3xl: 1.75rem;
+}
+
+@layer base {
+  html {
+    color-scheme: light;
+  }
+
+  body {
+    margin: 0;
+    font-size: 16px;
+    line-height: 1.5;
+    color: var(--color-ink-900);
+    background: var(--color-cream);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  #root {
+    min-height: 100svh;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-kelder-600);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+
+  button {
+    font: inherit;
+  }
+}
+
+@layer utilities {
+  /* Interactive surfaces gently lift on hover — makes the wallet feel alive */
+  .lift {
+    transition: transform 0.18s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.18s ease;
+  }
+  .lift:hover {
+    transform: translateY(-2px);
+  }
+
+  /* Premium sheen that sweeps across the wallet card once on mount */
+  .sheen {
+    position: relative;
+    overflow: hidden;
+  }
+  .sheen::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(115deg, transparent 30%, rgb(255 255 255 / 0.14) 48%, transparent 66%);
+    transform: translateX(-120%);
+    animation: sheen-sweep 1.4s ease 0.3s 1;
+  }
+  @keyframes sheen-sweep {
+    to {
+      transform: translateX(120%);
+    }
+  }
+
+  /* Soft entrance for stacked cards */
+  .rise {
+    animation: rise-in 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+  @keyframes rise-in {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+  }
+
+  /* Gentle attention pulse for a brand-new benefit (e.g. a new CrediVale) */
+  .pulse-ring {
+    animation: pulse-ring 2s ease-in-out infinite;
+  }
+  @keyframes pulse-ring {
+    0%, 100% {
+      box-shadow: 0 0 0 0 rgb(211 18 42 / 0.35);
+    }
+    50% {
+      box-shadow: 0 0 0 6px rgb(211 18 42 / 0);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .sheen::after,
+    .rise,
+    .pulse-ring {
+      animation: none;
+    }
+    .lift {
+      transition: none;
+    }
+  }
+}
