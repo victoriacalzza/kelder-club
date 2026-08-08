@@ -7,9 +7,9 @@ import { cuenta, tiendasEnLinea, user, formatMXN } from "@/lib/mock-data";
 type Step = "tienda" | "monto" | "confirmar" | "listo";
 
 const steps: { key: Step; label: string }[] = [
-  { key: "tienda", label: "Tienda" },
-  { key: "monto", label: "Monto" },
-  { key: "confirmar", label: "Confirmar" },
+  { key: "tienda", label: "Cómo usarlo" },
+  { key: "monto", label: "Tu cashback" },
+  { key: "confirmar", label: "Completar" },
 ];
 
 export function RedeemFlow({ onClose }: { onClose: () => void }) {

@@ -17,7 +17,8 @@
   --color-ink-950: #14121a;
   --color-ink-900: #1c1a24;
   --color-ink-700: #4a4653;
-  --color-ink-500: #75717d;
+  --color-ink-600: #5c5866;
+  --color-ink-500: #6e6a77;
   --color-ink-400: #98949f;
   --color-ink-300: #bcb9c1;
   --color-ink-200: #ded9e0;
@@ -129,10 +130,24 @@
     }
   }
 
+  /* Gentle editorial float for the hero product — keeps its diagonal tilt */
+  .float-hero {
+    animation: float-hero 6.5s ease-in-out infinite;
+  }
+  @keyframes float-hero {
+    0%, 100% {
+      transform: rotate(-14deg) translateY(0);
+    }
+    50% {
+      transform: rotate(-14deg) translateY(-12px);
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .sheen::after,
     .rise,
-    .pulse-ring {
+    .pulse-ring,
+    .float-hero {
       animation: none;
     }
     .lift {

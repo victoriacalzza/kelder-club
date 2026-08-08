@@ -1,12 +1,15 @@
-import { PercentCircle, WalletCards, Search } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { StatusPill } from "@/components/ui/StatusPill";
-import { QuickAction } from "@/components/ui/QuickAction";
 import { ValeCard } from "@/components/ui/ValeCard";
 import { KelderCard } from "@/components/ui/KelderCard";
-import { ActivityItem } from "@/components/ui/ActivityItem";
-import { vales, actividad } from "@/lib/mock-data";
+import { CreditSummary } from "@/components/ui/CreditSummary";
+import { CreditoKelderCard } from "@/components/ui/CreditoKelderCard";
+import { OrderInProgress } from "@/components/ui/OrderInProgress";
+import { ProductCard } from "@/components/ui/ProductCard";
+import { StorePreview } from "@/components/ui/StorePreview";
+import { PromoBanner } from "@/components/ui/PromoBanner";
+import { vales, tiendaCercana, campaniaDestacada, pedidoActivo, recomendaciones } from "@/lib/mock-data";
 
 export default function PrimitivesShowcase() {
   return (
@@ -24,26 +27,38 @@ export default function PrimitivesShowcase() {
         <StatusPill estado="vencido" />
       </section>
 
-      <section className="grid w-80 grid-cols-2 gap-3">
-        <QuickAction tint="green" icon={<PercentCircle size={22} />} label="Usar cashback" subtitle="En línea o en caja" />
-        <QuickAction tint="kelder" icon={<WalletCards size={22} />} label="Mis vales" subtitle="Vales y CrediVales" />
-        <QuickAction tint="info" icon={<Search size={22} />} label="Buscar" subtitle="En todo el grupo" />
-      </section>
-
       <section className="w-72">
         <Card>Card base — superficie neutra para agrupar contenido.</Card>
       </section>
 
-      <section className="w-[420px]">
-        <KelderCard />
+      <section className="w-[720px]">
+        <KelderCard cashback={245} />
       </section>
 
-      <section className="w-[440px] rounded-3xl bg-white p-6 shadow-soft">
-        <ul>
-          <ActivityItem item={actividad[0]} />
-          <ActivityItem item={actividad[1]} />
-          <ActivityItem item={actividad[2]} last />
-        </ul>
+      <section className="w-[720px]">
+        <CreditSummary />
+      </section>
+
+      <section className="w-[720px]">
+        <CreditoKelderCard />
+      </section>
+
+      <section className="w-[720px]">
+        <OrderInProgress pedido={pedidoActivo} />
+      </section>
+
+      <section className="grid w-[720px] grid-cols-4 gap-4">
+        {recomendaciones.slice(0, 4).map((p) => (
+          <ProductCard key={p.id} producto={p} />
+        ))}
+      </section>
+
+      <section className="w-[720px]">
+        <PromoBanner campania={campaniaDestacada} />
+      </section>
+
+      <section className="w-[720px]">
+        <StorePreview tienda={tiendaCercana} />
       </section>
 
       <section className="grid w-80 gap-3">

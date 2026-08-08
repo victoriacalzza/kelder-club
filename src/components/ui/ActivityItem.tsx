@@ -10,7 +10,7 @@ import type { Actividad, ActividadTipo } from "@/lib/mock-data";
  */
 const config: Record<ActividadTipo, { icon: typeof ShoppingBag; className: string }> = {
   compra: { icon: ShoppingBag, className: "bg-info-100 text-info-700" },
-  credivale: { icon: Ticket, className: "bg-kelder-50 text-kelder-600" },
+  vale: { icon: Ticket, className: "bg-kelder-50 text-kelder-600" },
   canje: { icon: PercentCircle, className: "bg-success-100 text-success-600" },
 };
 

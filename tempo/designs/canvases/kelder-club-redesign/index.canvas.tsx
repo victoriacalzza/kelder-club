@@ -8,6 +8,16 @@ import Qrmodalstoryboard from "./QRModalStoryboard";
 import Redeemflowstoryboard from "./RedeemFlowStoryboard";
 import Comprasstoryboard from "./ComprasStoryboard";
 import Perfilstoryboard from "./PerfilStoryboard";
+import Tiendasstoryboard from "./TiendasStoryboard";
+import Homesincashbackstoryboard from "./HomeSinCashbackStoryboard";
+import Homesinvalesstoryboard from "./HomeSinValesStoryboard";
+import Homesincredivalestoryboard from "./HomeSinCredivaleStoryboard";
+import Buscartextostoryboard from "./BuscarTextoStoryboard";
+import Buscarcodigostoryboard from "./BuscarCodigoStoryboard";
+import Buscarfotostoryboard from "./BuscarFotoStoryboard";
+import Buscarresultadosstoryboard from "./BuscarResultadosStoryboard";
+import Buscarsinresultadosstoryboard from "./BuscarSinResultadosStoryboard";
+import Productodetallestoryboard from "./ProductoDetalleStoryboard";
 
 export default function KelderClubRedesignCanvas() {
   return (
@@ -16,31 +26,31 @@ export default function KelderClubRedesignCanvas() {
         id="Home"
         name="1. Home"
         component={Homestoryboard}
-        layout={{ x: 0, y: 0, width: 1440, height: 1000 }}
+        layout={{ x: 0, y: 0, width: 1440, height: 2020 }}
       />
       <Storyboard
         id="MisVales"
         name="2. Mis Vales"
         component={Valesstoryboard}
-        layout={{ x: 0, y: 1080, width: 1440, height: 760 }}
+        layout={{ x: 0, y: 2100, width: 1440, height: 760 }}
       />
       <Storyboard
         id="Cashback"
         name="3. Cashback"
         component={Cashbackstoryboard}
-        layout={{ x: 0, y: 1920, width: 1440, height: 780 }}
+        layout={{ x: 0, y: 2940, width: 1440, height: 780 }}
       />
       <Storyboard
         id="Compras"
         name="4. Compras"
         component={Comprasstoryboard}
-        layout={{ x: 0, y: 2780, width: 1440, height: 940 }}
+        layout={{ x: 0, y: 3800, width: 1440, height: 940 }}
       />
       <Storyboard
         id="Perfil"
         name="5. Perfil"
         component={Perfilstoryboard}
-        layout={{ x: 0, y: 3800, width: 1440, height: 900 }}
+        layout={{ x: 0, y: 4820, width: 1440, height: 900 }}
       />
       <Storyboard
         id="DetalleVale"
@@ -65,6 +75,66 @@ export default function KelderClubRedesignCanvas() {
         name="9. Flujo — Canjear cashback"
         component={Redeemflowstoryboard}
         layout={{ x: 1540, y: 2360, width: 900, height: 880 }}
+      />
+      <Storyboard
+        id="Tiendas"
+        name="10. Tiendas"
+        component={Tiendasstoryboard}
+        layout={{ x: 1540, y: 3320, width: 1440, height: 820 }}
+      />
+      <Storyboard
+        id="HomeSinCashback"
+        name="Estado — Sin cashback + sin CrediVale"
+        component={Homesincashbackstoryboard}
+        layout={{ x: 3080, y: 0, width: 1440, height: 1900 }}
+      />
+      <Storyboard
+        id="CreditoBloqueB"
+        name="Crédito — B · con crédito, sin vales"
+        component={Homesinvalesstoryboard}
+        layout={{ x: 4620, y: 0, width: 1440, height: 1820 }}
+      />
+      <Storyboard
+        id="CreditoBloqueC"
+        name="Crédito — C · sin CrediVale (invitación)"
+        component={Homesincredivalestoryboard}
+        layout={{ x: 6160, y: 0, width: 1440, height: 1900 }}
+      />
+      <Storyboard
+        id="BuscarTexto"
+        name="Buscar — inicial (Texto)"
+        component={Buscartextostoryboard}
+        layout={{ x: 3080, y: 2000, width: 1440, height: 760 }}
+      />
+      <Storyboard
+        id="BuscarCodigo"
+        name="Buscar — Código"
+        component={Buscarcodigostoryboard}
+        layout={{ x: 4620, y: 2000, width: 1440, height: 620 }}
+      />
+      <Storyboard
+        id="BuscarFoto"
+        name="Buscar — Foto"
+        component={Buscarfotostoryboard}
+        layout={{ x: 6160, y: 2000, width: 1440, height: 700 }}
+      />
+      <Storyboard
+        id="BuscarResultados"
+        name="Buscar — resultados (grid)"
+        component={Buscarresultadosstoryboard}
+        layout={{ x: 3080, y: 2860, width: 1440, height: 1160 }}
+      />
+      <Storyboard
+        id="BuscarSinResultados"
+        name="Buscar — sin resultados"
+        component={Buscarsinresultadosstoryboard}
+        layout={{ x: 4620, y: 2860, width: 1440, height: 720 }}
+      />
+      <Storyboard
+        id="ProductoDetalle"
+        name="Detalle de producto"
+        component={Productodetallestoryboard}
+        layout={{ x: 6160, y: 2860, width: 1440, height: 1120 }}
       />
     </Canvas>
   );

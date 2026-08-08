@@ -1,0 +1,53 @@
+import { MapPin, Clock, ArrowUpRight } from "lucide-react";
+import type { Tienda } from "@/lib/mock-data";
+
+/**
+ * "Tu tienda más cercana" — connects the digital club to the physical ecosystem.
+ * Shows the nearest store, whether it's open, hours and distance, with a way to get
+ * directions. The left panel is an art-directed image slot for a real storefront photo.
+ * The canvas for this component is at tempo/designs/design-system/primitives/index.canvas.tsx.
+ * If you adjust this component in any way, ensure the canvas and its asset declaration stay consistent.
+ */
+export function StorePreview({ tienda, onDirections, onVerTodas }: { tienda: Tienda; onDirections?: () => void; onVerTodas?: () => void }) {
+  return (
+    <div className="overflow-hidden rounded-2xl border border-ink-100 bg-white">
+      <div className="flex flex-col md:min-h-[240px] md:flex-row">
+        {/* storefront photo — ≈40% */}
+        <div className="h-48 w-full overflow-hidden bg-ink-50 md:h-auto md:w-2/5 md:shrink-0">
+          {tienda.imagen && <img src={tienda.imagen} alt={`Tienda ${tienda.nombre}`} className="h-full w-full object-cover" />}
+        </div>
+
+        <div className="flex flex-1 flex-col justify-center gap-2 p-6 sm:p-8">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-ink-400">Tu tienda más cercana</p>
+              <p className="mt-0.5 text-lg font-semibold text-ink-900">{tienda.nombre}</p>
+            </div>
+            <MapPin size={20} className="shrink-0 text-kelder-600" aria-hidden="true" />
+          </div>
+
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-ink-500">
+            <span className="inline-flex items-center gap-1.5">
+              <Clock size={14} aria-hidden="true" />
+              <span className={tienda.abierta ? "font-medium text-success-700" : "font-medium text-ink-500"}>
+                {tienda.abierta ? "Abierta" : "Cerrada"}
+              </span>
+              · {tienda.horario}
+            </span>
+            <span>A {tienda.distancia}</span>
+          </div>
+
+          <div className="mt-1 flex items-center gap-4">
+            <button onClick={onDirections} className="inline-flex min-h-[44px] items-center gap-1 text-sm font-semibold text-kelder-600">
+              Cómo llegar
+              <ArrowUpRight size={15} aria-hidden="true" />
+            </button>
+            <button onClick={onVerTodas} className="inline-flex min-h-[44px] items-center text-sm font-medium text-ink-500 hover:text-ink-900">
+              Ver todas las sucursales
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

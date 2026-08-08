@@ -9,6 +9,12 @@ import { QuickAction } from "@/components/ui/QuickAction";
 import { ValeCard } from "@/components/ui/ValeCard";
 import { KelderCard } from "@/components/ui/KelderCard";
 import { ActivityItem } from "@/components/ui/ActivityItem";
+import { StorePreview } from "@/components/ui/StorePreview";
+import { PromoBanner } from "@/components/ui/PromoBanner";
+import { CreditoKelderCard } from "@/components/ui/CreditoKelderCard";
+import { CreditSummary } from "@/components/ui/CreditSummary";
+import { OrderInProgress } from "@/components/ui/OrderInProgress";
+import { ProductCard } from "@/components/ui/ProductCard";
 
 export default function PrimitivesCanvas() {
   return (
@@ -60,14 +66,14 @@ defineAsset(QuickAction, {
 
 defineAsset(ValeCard, {
   libraries: ["core"],
-  usageInstructions: "Wallet-style card for a Vale or CrediVale digital, proportioned like a payment card rather than a product card. CrediVale digital renders on a dark surface to read as a credit instrument; vale de compra renders on white.",
+  usageInstructions: "Wallet-style card for a vale/reward, proportioned like a loyalty pass (Apple Wallet) rather than a product card. Shows amount, status (icon + text), mayorista and validity. The component keeps a `credivale` branch ready for that FUTURE feature, but only vales are shown today.",
   variants: {
-    CrediValeDigital: {
+    Activo: {
       props: {
         vale: {
           id: "v1",
-          tipo: "credivale",
-          monto: 2500,
+          tipo: "vale",
+          monto: 500,
           estado: "activo",
           mayorista: "Calzzapato",
           fechaEmision: "02 ago 2026",
@@ -75,7 +81,7 @@ defineAsset(ValeCard, {
         },
       },
     },
-    ValeDeCompra: {
+    PorVencer: {
       props: {
         vale: {
           id: "v2",
@@ -93,22 +99,84 @@ defineAsset(ValeCard, {
 
 defineAsset(KelderCard, {
   libraries: ["core"],
-  usageInstructions: "The Kelder Club wallet card — the emotional centerpiece of the Home. A premium loyalty/financial pass (Apple Wallet / Nubank feel): available money is the hero, CrediVale + cashback are pills, membership level is the badge, and it carries the single primary 'Mostrar QR' action. One per screen, only on Home.",
+  usageInstructions: "The cashback hero — the protagonist of the Home. A dark, editorial retail banner (Nike Membership feel) presenting cashback as a reward, not a bank balance. Two states: `cashback > 0` shows the balance + Mostrar QR / Canjear; `cashback === 0` shows the aspirational 'start earning' empty state. One per screen, only on Home.",
+  variants: {
+    ConCashback: { props: { cashback: 245 } },
+    SinCashback: { props: { cashback: 0 } },
+  },
+});
+
+defineAsset(StorePreview, {
+  libraries: ["core"],
+  usageInstructions: "\"Tu tienda más cercana\" card — bridges the digital club and the physical stores. Shows nearest store, open state, hours, distance and directions. Left panel is an image slot for a real storefront photo.",
+  variants: {
+    Abierta: {
+      props: { tienda: { id: "t1", nombre: "Kelder Plaza Forum", horario: "9:00 – 21:00", abierta: true, distancia: "1.2 km" } },
+    },
+  },
+});
+
+defineAsset(PromoBanner, {
+  libraries: ["core"],
+  usageInstructions: "Featured campaign banner — editorial content that gives members a reason to return (promo of the week, benefit of the month, launches). Wide and aspirational, NOT a product catalog. One per Home.",
+  variants: {
+    Promo: {
+      props: {
+        campania: {
+          id: "camp1",
+          etiqueta: "Solo por esta semana",
+          titulo: "20% de descuento",
+          detalle: "En productos seleccionados Adidas de temporada",
+          cta: "Ver promoción",
+        },
+      },
+    },
+  },
+});
+
+defineAsset(CreditoKelderCard, {
+  libraries: ["core"],
+  usageInstructions: "Home block 2b — the CrediVale INVITATION, shown ONLY to members without credit. Lifestyle card: 'Conoce Crédito Kelder', buy-now-pay-later copy, single 'Conocer más' CTA. Never coexists with CreditSummary (2a); never uses the red gradient.",
+});
+
+defineAsset(CreditSummary, {
+  libraries: ["core"],
+  usageInstructions: "Home block 2a — the consolidated CrediVale summary, shown ONLY to members WITH credit. Saldo pendiente is the hero figure; vales activos, mayorista and próximo pago are support; one CTA to Mis vales (never lists individual vales). Never coexists with CreditoKelderCard (2b).",
+});
+
+defineAsset(OrderInProgress, {
+  libraries: ["core"],
+  usageInstructions: "Home block 3 — an active order (product image, status, estimated delivery, tracking CTA). Render ONLY when an order exists; otherwise omit the block entirely (no empty state).",
+  variants: {
+    EnCamino: {
+      props: {
+        pedido: { id: "ped1", producto: "Ultraboost Light", marca: "Adidas", estado: "En camino", fechaEntrega: "Llega el 9 de agosto" },
+      },
+    },
+  },
+});
+
+defineAsset(ProductCard, {
+  libraries: ["core"],
+  usageInstructions: "Home block 4 item — a recommended product, Nike-style: large product photo on a very light surface, then brand, short name and price. Not a catalog tile — no badges, stock counts or filters. Max four per Home.",
+  variants: {
+    Producto: { props: { producto: { id: "p1", marca: "Adidas", modelo: "Core Black / Cloud White", precio: 1299 } } },
+  },
 });
 
 defineAsset(ActivityItem, {
   libraries: ["core"],
   usageInstructions: "One narrative entry in the activity timeline — reads like a small story (title + benefit detail + relative time) with a tinted icon medallion and amount badge. Set `last` on the final item to hide the connector line; `item.nuevo` adds a pulsing 'Nuevo' ring.",
   variants: {
-    CrediValeNuevo: {
+    ValeNuevo: {
       props: {
         item: {
           id: "act1",
-          tipo: "credivale",
-          titulo: "Recibiste un nuevo CrediVale",
-          detalle: "Disponible para usar en línea o en caja",
+          tipo: "vale",
+          titulo: "Recibiste un vale de regalo",
+          detalle: "Disponible para tu próxima compra",
           tiempo: "Hace 2 horas",
-          monto: "+$2,500",
+          monto: "+$450",
           positivo: true,
           nuevo: true,
         },
