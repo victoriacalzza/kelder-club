@@ -1,26 +1,56 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Truck, ArrowRight } from "lucide-react";
 import { TopBar } from "@/components/layout/TopBar";
-import { compras, formatMXN, type CompraCanal } from "@/lib/mock-data";
+import {
+  compras,
+  resumenCompras,
+  totalCompra,
+  articulosCompra,
+  formatMXN,
+  type CompraCanal,
+} from "@/lib/mock-data";
 
-type Filtro = "todos" | "tienda" | "linea";
+type Filtro = "todas" | "tienda" | "linea";
 const tabs: { key: Filtro; label: string }[] = [
-  { key: "todos", label: "Todos" },
+  { key: "todas", label: "Todas" },
   { key: "tienda", label: "En tienda" },
   { key: "linea", label: "En línea" },
 ];
-
-const canalLabel: Record<CompraCanal, string> = { tienda: "En tienda", linea: "En línea" };
+const canalLabel: Record<CompraCanal, string> = { tienda: "Compra en tienda", linea: "Pedido en línea" };
 
 export function Compras() {
-  const [filtro, setFiltro] = useState<Filtro>("todos");
-  const lista = compras.filter((c) => filtro === "todos" || c.canal === filtro);
+  const navigate = useNavigate();
+  const [filtro, setFiltro] = useState<Filtro>("todas");
+  const lista = compras.filter((c) => filtro === "todas" || c.canal === filtro);
 
   return (
     <div>
-      <TopBar title="Compras" subtitle="Tus compras en tienda y en línea, con el cashback que generaste." />
+      <TopBar title="Mis compras" subtitle="Consulta tus compras, pedidos y el cashback que has generado." />
 
-      {/* Discreet tabs — one unified experience, easy to tell the type apart */}
+      {/* Compact horizontal cashback summary (not three big cards) */}
+      <div className="mb-6 flex flex-wrap items-center gap-x-8 gap-y-3 rounded-2xl border border-ink-100 bg-white px-6 py-4">
+        <div>
+          <span className="text-sm text-ink-500">Cashback disponible</span>{" "}
+          <span className="text-base font-semibold text-ink-900">{formatMXN(resumenCompras.cashbackDisponible)}</span>
+        </div>
+        <span className="hidden h-4 w-px bg-ink-100 sm:block" aria-hidden="true" />
+        <div>
+          <span className="text-sm text-ink-500">Cashback generado</span>{" "}
+          <span className="text-base font-semibold text-ink-900">{formatMXN(resumenCompras.cashbackGenerado)}</span>
+        </div>
+        <span className="hidden h-4 w-px bg-ink-100 sm:block" aria-hidden="true" />
+        <div>
+          <span className="text-sm text-ink-500">Compras realizadas</span>{" "}
+          <span className="text-base font-semibold text-ink-900">{resumenCompras.comprasRealizadas}</span>
+        </div>
+        <button onClick={() => navigate("/cashback")} className="ml-auto inline-flex min-h-[40px] items-center gap-1 text-sm font-semibold text-kelder-600">
+          Ver movimientos de cashback
+          <ArrowRight size={15} aria-hidden="true" />
+        </button>
+      </div>
+
+      {/* Filters */}
       <div className="mb-6 inline-flex items-center gap-1 rounded-full border border-ink-100 bg-white p-1">
         {tabs.map((t) => (
           <button
@@ -35,44 +65,74 @@ export function Compras() {
         ))}
       </div>
 
+      {/* One card per transaction (ticket / order) */}
       <div className="space-y-4">
-        {lista.map((c) => (
-          <div key={c.id} className="flex flex-col gap-4 rounded-2xl border border-ink-100 bg-white p-4 sm:flex-row sm:items-center sm:p-5">
-            {/* product image — protagonist */}
-            <div className="h-28 w-full shrink-0 overflow-hidden rounded-xl bg-ink-50 sm:h-24 sm:w-24">
-              {c.imagen && <img src={c.imagen} alt={`${c.marca} ${c.producto}`} className="h-full w-full object-contain p-2" />}
-            </div>
-
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2">
-                <p className="text-xs text-ink-500">{c.marca}</p>
-                <span className="text-ink-300" aria-hidden="true">·</span>
-                <span className="inline-flex items-center gap-1 text-xs text-ink-500">
-                  {c.canal === "linea" && <Truck size={12} aria-hidden="true" />}
-                  {canalLabel[c.canal]}
-                </span>
+        {lista.map((c) => {
+          const total = totalCompra(c);
+          const nArt = articulosCompra(c);
+          const thumbs = c.items.slice(0, 3);
+          const extra = c.items.length - thumbs.length;
+          return (
+            <div key={c.id} className="rounded-2xl border border-ink-100 bg-white p-5 sm:p-6">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="font-semibold text-ink-900">{c.tienda}</p>
+                  <p className="text-sm text-ink-500">
+                    {c.fecha} · {canalLabel[c.canal]} · Ticket {c.ticket}
+                  </p>
+                </div>
                 {c.estado && (
-                  <span className="rounded-full bg-info-100 px-2 py-0.5 text-xs font-semibold text-info-700">{c.estado}</span>
+                  <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-info-100 px-2.5 py-1 text-xs font-semibold text-info-700">
+                    <Truck size={13} aria-hidden="true" />
+                    {c.estado}
+                  </span>
                 )}
               </div>
-              <p className="mt-0.5 font-semibold text-ink-900">{c.producto}</p>
-              <p className="text-sm text-ink-500">
-                {c.sucursal} · {c.fecha}
-              </p>
-            </div>
 
-            <div className="flex items-center justify-between gap-6 sm:flex-col sm:items-end sm:justify-center sm:gap-1">
-              <div className="text-left sm:text-right">
-                <p className="text-lg font-semibold text-ink-900">{formatMXN(c.monto)}</p>
-                <p className="text-sm font-semibold text-success-600">+{formatMXN(c.cashback)} cashback</p>
+              {/* product thumbnails */}
+              <div className="mt-4 flex items-center gap-2">
+                {thumbs.map((it, i) => (
+                  <span key={i} className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-xl bg-ink-50">
+                    {it.imagen && <img src={it.imagen} alt={`${it.marca} ${it.modelo}`} className="h-full w-full object-contain p-1.5" />}
+                  </span>
+                ))}
+                {extra > 0 && (
+                  <span className="flex h-14 w-14 items-center justify-center rounded-xl bg-ink-50 text-sm font-semibold text-ink-500">
+                    +{extra}
+                  </span>
+                )}
               </div>
-              <button className="inline-flex min-h-[44px] items-center gap-1 whitespace-nowrap text-sm font-semibold text-kelder-600">
-                {c.canal === "linea" ? "Seguir pedido" : "Ver compra"}
-                <ArrowRight size={15} aria-hidden="true" />
-              </button>
+
+              {/* summary + actions */}
+              <div className="mt-4 flex flex-wrap items-end justify-between gap-3 border-t border-ink-100 pt-4">
+                <div>
+                  <p className="text-[15px] font-semibold text-ink-900">
+                    {nArt} {nArt === 1 ? "artículo" : "artículos"} · Total {formatMXN(total)}
+                  </p>
+                  <p className="text-sm font-semibold text-success-600">+{formatMXN(c.cashback)} cashback</p>
+                </div>
+                <div className="flex items-center gap-4">
+                  {c.canal === "linea" && c.estado !== "Entregado" && (
+                    <button
+                      onClick={() => navigate(`/compras/${c.id}`)}
+                      className="inline-flex min-h-[44px] items-center gap-1 text-sm font-semibold text-ink-700 hover:text-ink-900"
+                    >
+                      Seguir pedido
+                      <ArrowRight size={15} aria-hidden="true" />
+                    </button>
+                  )}
+                  <button
+                    onClick={() => navigate(`/compras/${c.id}`)}
+                    className="inline-flex min-h-[44px] items-center gap-1 text-sm font-semibold text-kelder-600"
+                  >
+                    Ver detalle
+                    <ArrowRight size={15} aria-hidden="true" />
+                  </button>
+                </div>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

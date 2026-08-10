@@ -1,12 +1,11 @@
-import { ArrowRight, Ticket, CreditCard } from "lucide-react";
-import { pagosMayoristas, mayoristasAsignados, productoCredito, iniciales, formatMXN, type PagoMayorista } from "@/lib/mock-data";
+import { ArrowRight, CreditCard } from "lucide-react";
+import { pagosMayoristas, mayoristasAsignados, iniciales, formatMXN, type PagoMayorista } from "@/lib/mock-data";
 
 /**
- * Home block 2 — Crédito Kelder REMINDER (states A "con_vales" and B "sin_vales").
- * It is deliberately one of the lightest blocks on the Home: it answers who I pay, how
- * much and when — nothing else. No payment flow, no consequences, no summed total across
- * mayoristas, no "saldo". The single CTA hands off to the separate Crédito Kelder app.
- * Payments are a biweekly series, so context is progress ("Pago 3 de 6"), not a balance.
+ * Home credit slot — the CRÉDITO KELDER reminder (payment series). This is strictly the
+ * Crédito Kelder product: who I pay, how much and when. It is NOT a CrediVale surface and
+ * never shows CrediVale credentials — the two are independent products. No payment flow,
+ * no consequences, no summed total across mayoristas. Context is progress ("Pago 3 de 6").
  * The canvas for this component is at tempo/designs/design-system/primitives/index.canvas.tsx.
  * If you adjust this component in any way, ensure the canvas and its asset declaration stay consistent.
  */
@@ -34,31 +33,25 @@ export function CreditSummary({ estado = "con_vales", onVerCredito, onSolicitar 
   const visibles = rows.slice(0, 3);
   const extra = rows.length - visibles.length;
   const nMayoristas = rows.length;
-  // One product icon per block, aligned with the micro-label: ticket for CrediVale, card for Crédito Kelder.
-  const ProductoIcon = productoCredito === "CrediVale" ? Ticket : CreditCard;
 
   return (
     <div className="rounded-2xl border border-ink-100 bg-white p-5 sm:p-6">
       <div className="flex items-center justify-between gap-4">
         <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-ink-500">
-          <ProductoIcon size={18} strokeWidth={1.75} className="text-ink-500" aria-hidden="true" />
-          {estado === "con_vales" ? (
-            <span>
-              Tus vales · {productoCredito}
-              {nMayoristas > 1 && <span className="text-ink-400"> · {nMayoristas} mayoristas</span>}
-            </span>
-          ) : (
-            <span>Tus vales · {productoCredito}</span>
-          )}
+          <CreditCard size={18} strokeWidth={1.75} className="text-ink-500" aria-hidden="true" />
+          <span>
+            Crédito Kelder
+            {estado === "con_vales" && nMayoristas > 1 && <span className="text-ink-400"> · {nMayoristas} mayoristas</span>}
+          </span>
         </p>
         {estado === "con_vales" ? (
           <button onClick={onVerCredito} className="inline-flex shrink-0 items-center gap-1 text-sm font-semibold text-kelder-600">
-            Ver mis vales
+            Ver mi crédito
             <ArrowRight size={14} aria-hidden="true" />
           </button>
         ) : (
           <button onClick={onSolicitar} className="inline-flex shrink-0 items-center gap-1 text-sm font-semibold text-kelder-600">
-            Cómo solicitar un vale
+            Ver mi crédito
             <ArrowRight size={14} aria-hidden="true" />
           </button>
         )}
@@ -107,9 +100,9 @@ export function CreditSummary({ estado = "con_vales", onVerCredito, onSolicitar 
         </div>
       ) : (
         <div className="mt-3">
-          <p className="text-[15px] font-medium text-ink-900">No tienes vales activos</p>
+          <p className="text-[15px] font-medium text-ink-900">No tienes pagos pendientes</p>
           <p className="mt-1 max-w-md text-sm text-ink-500">
-            Cuando necesites uno nuevo, solicítalo con tu mayorista {listarNombres(mayoristasAsignados)}.
+            Tu Crédito Kelder está al corriente con {listarNombres(mayoristasAsignados)}.
           </p>
         </div>
       )}

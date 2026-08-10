@@ -4,9 +4,11 @@ import { ArrowRight } from "lucide-react";
 import { KelderCard } from "@/components/ui/KelderCard";
 import { CreditSummary } from "@/components/ui/CreditSummary";
 import { CreditoKelderCard } from "@/components/ui/CreditoKelderCard";
+import { CrediValesEmpty } from "@/components/ui/CrediValesEmpty";
 import { OrderInProgress } from "@/components/ui/OrderInProgress";
 import { ProductCard } from "@/components/ui/ProductCard";
 import { PromoBanner } from "@/components/ui/PromoBanner";
+import { MarcasMarquee } from "@/components/ui/MarcasMarquee";
 import { StorePreview } from "@/components/ui/StorePreview";
 import { QRModal } from "@/components/modals/QRModal";
 import { RedeemFlow } from "@/components/modals/RedeemFlow";
@@ -44,10 +46,18 @@ export function Home({ profile = perfilDemo }: { profile?: ClientProfile }) {
         />
       </div>
 
-      {/* 2 · Conditional credit slot — one branch only, never both, never empty */}
+      {/* Business units — compact recognition strip, right under the hero */}
+      <div className="mt-7">
+        <MarcasMarquee onSelect={() => navigate("/buscar")} />
+      </div>
+
+      {/* 2 · Conditional credit slot — one branch only, never both, never empty.
+          con_vales → Crédito Kelder payment reminder · sin_vales → CrediVales empty state
+          · no_miembro → Crédito Kelder invitation. Crédito Kelder and CrediVale are
+          independent products; each branch shows exactly one of them. */}
       <div className="mt-8">
-        {profile.credito === "con_vales" && <CreditSummary estado="con_vales" onVerCredito={() => navigate("/vales")} />}
-        {profile.credito === "sin_vales" && <CreditSummary estado="sin_vales" onSolicitar={() => navigate("/vales")} />}
+        {profile.credito === "con_vales" && <CreditSummary estado="con_vales" onVerCredito={() => navigate("/credito")} />}
+        {profile.credito === "sin_vales" && <CrediValesEmpty onConocer={() => navigate("/vales")} />}
         {profile.credito === "no_miembro" && <CreditoKelderCard onConocer={() => navigate("/vales")} />}
       </div>
 

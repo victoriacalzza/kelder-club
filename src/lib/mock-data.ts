@@ -1,31 +1,64 @@
 export type ValeEstado = "activo" | "por_vencer" | "usado" | "vencido";
 export type ValeTipo = "vale" | "credivale";
 
+export interface ValeMovimiento {
+  id: string;
+  concepto: string;
+  fecha: string;
+  monto: number;
+  tipo: "emision" | "uso";
+}
+
 export interface Vale {
   id: string;
   tipo: ValeTipo;
-  monto: number;
+  monto: number; // monto autorizado (importe original de la credencial)
+  disponible: number; // remaining balance
+  utilizado: number; // amount already used
   estado: ValeEstado;
-  mayorista: string;
+  mayorista: string; // business unit (e.g. Calzzapato)
+  mayoristaPersona: string; // the assigned mayorista (a person)
+  folio: string; // masked, e.g. "•••• 2845"
   fechaEmision: string;
   fechaVigencia: string;
+  // CrediVale credential fields (mirror the real CrediVale card). Optional so existing
+  // asset variants stay valid; views fall back to the account holder when absent.
+  titular?: string; // e.g. "ANA VICTORIA ARAGÓN GÓMEZ"
+  celular?: string; // e.g. "667 100 3010"
+  postergado?: boolean; // real CrediVale "Postergado: Sí/No" flag
+  movimientos?: ValeMovimiento[];
+  compras?: { id: string; tienda: string; fecha: string; monto: number }[];
 }
 
 export type CompraCanal = "tienda" | "linea";
-export type CompraEstado = "Preparando" | "Enviado" | "En camino" | "Entregado";
+export type CompraEstado = "En preparación" | "En camino" | "Entregado";
+
+// A purchase groups one OR MORE line items under a single ticket/order.
+export interface CompraItem {
+  marca: string;
+  modelo: string;
+  imagen?: string;
+  talla?: number;
+  cantidad: number;
+  precioUnitario: number;
+}
 
 export interface Compra {
   id: string;
-  producto: string;
-  marca: string;
-  sucursal: string; // display name of the store or online channel
+  tienda: string; // store name or online channel
   canal: CompraCanal;
   estado?: CompraEstado; // only for online orders
   fecha: string;
-  monto: number;
-  cashback: number;
-  imagen?: string;
-  ticketUrl: string;
+  ticket: string; // ticket # (in-store) or order # (online)
+  items: CompraItem[];
+  cashback: number; // cashback this whole purchase generated
+}
+
+export function totalCompra(c: Compra) {
+  return c.items.reduce((s, i) => s + i.precioUnitario * i.cantidad, 0);
+}
+export function articulosCompra(c: Compra) {
+  return c.items.reduce((s, i) => s + i.cantidad, 0);
 }
 
 export interface MovimientoCashback {
@@ -44,6 +77,15 @@ import prodNb530 from "../assets/hero-nb530.png";
 import fotoTienda from "../assets/tienda-forum.jpg";
 import pedidoAdidas from "../assets/pedido-adidas.png";
 import campanaRegreso from "../assets/campana-regreso.png";
+import logoCalzzapato from "../assets/logos/calzzapato.png";
+import logoKelder from "../assets/logos/kelder.png";
+import logoUrbanna from "../assets/logos/urbanna.png";
+import logoCalzzasport from "../assets/logos/calzzasport.png";
+import logoCalzakids from "../assets/logos/calzakids.png";
+import imgCreditoKelder from "../assets/credito-kelder.png";
+
+// Editorial photo for the "Conoce Crédito Kelder" invitation card (Home, no-credit state).
+export { imgCreditoKelder };
 
 export interface Producto {
   id: string;
@@ -167,29 +209,53 @@ export interface ClientProfile {
 
 export const perfilDemo: ClientProfile = { cashback: 245, credito: "con_vales", pedidoEnCurso: true };
 
+export type UnidadNegocio = "Calzzapato" | "Kelder" | "Urbanna" | "CalzzaSport" | "CalzaKids";
+
+// Business units with their logo — used for filters and to render the correct brand image.
+export const unidadesNegocio: { nombre: UnidadNegocio; logo: string }[] = [
+  { nombre: "Calzzapato", logo: logoCalzzapato },
+  { nombre: "Kelder", logo: logoKelder },
+  { nombre: "Urbanna", logo: logoUrbanna },
+  { nombre: "CalzzaSport", logo: logoCalzzasport },
+  { nombre: "CalzaKids", logo: logoCalzakids },
+];
+
+export function logoDeUnidad(unidad: UnidadNegocio) {
+  return unidadesNegocio.find((u) => u.nombre === unidad)?.logo;
+}
+
 export interface Tienda {
   id: string;
+  unidad: UnidadNegocio;
   nombre: string;
+  ciudad: string;
   horario: string;
   abierta: boolean;
   distancia: string;
-  imagen?: string;
+  distanciaKm: number; // for ordering by proximity
+  imagen?: string; // real storefront photo (only when it matches the unit); else the unit logo is shown
 }
 
+// Nearest store — the real storefront photo we have IS a Calzzapato store, so the unit is Calzzapato.
 export const tiendaCercana: Tienda = {
   id: "t1",
-  nombre: "Kelder Plaza Forum",
+  unidad: "Calzzapato",
+  nombre: "Calzzapato Galerías Mazatlán",
+  ciudad: "Mazatlán",
   horario: "9:00 – 21:00",
   abierta: true,
   distancia: "1.2 km",
+  distanciaKm: 1.2,
   imagen: fotoTienda,
 };
 
 export const sucursales: Tienda[] = [
   tiendaCercana,
-  { id: "t2", nombre: "Kelder Galerías Mazatlán", horario: "10:00 – 22:00", abierta: true, distancia: "3.4 km" },
-  { id: "t3", nombre: "Calzzapato Paseo Mochis", horario: "9:00 – 21:00", abierta: true, distancia: "5.1 km" },
-  { id: "t4", nombre: "CalzzaSport Centro", horario: "10:00 – 20:00", abierta: false, distancia: "6.8 km" },
+  { id: "t2", unidad: "Kelder", nombre: "Kelder Plaza Forum", ciudad: "Mazatlán", horario: "10:00 – 22:00", abierta: true, distancia: "2.4 km", distanciaKm: 2.4 },
+  { id: "t3", unidad: "CalzzaSport", nombre: "CalzzaSport Centro", ciudad: "Mazatlán", horario: "10:00 – 20:00", abierta: false, distancia: "3.4 km", distanciaKm: 3.4 },
+  { id: "t4", unidad: "Urbanna", nombre: "Urbanna Paseo Mochis", ciudad: "Los Mochis", horario: "9:00 – 21:00", abierta: true, distancia: "5.1 km", distanciaKm: 5.1 },
+  { id: "t5", unidad: "CalzaKids", nombre: "CalzaKids Galerías", ciudad: "Mazatlán", horario: "10:00 – 21:00", abierta: true, distancia: "6.2 km", distanciaKm: 6.2 },
+  { id: "t6", unidad: "Calzzapato", nombre: "Calzzapato Plaza Palmares", ciudad: "Los Mochis", horario: "9:00 – 21:00", abierta: true, distancia: "7.0 km", distanciaKm: 7.0 },
 ];
 
 export interface Campania {
@@ -268,51 +334,144 @@ export const actividad: Actividad[] = [
   },
 ];
 
+/**
+ * CrediVales — individual digital credentials, a product SEPARATE from Crédito Kelder.
+ * Each CrediVale is its own card: folio, monto autorizado, titular, celular, vigencia,
+ * estado and postergado. Never summed together and never mixed with Crédito Kelder's
+ * saldo/pagos. The real CrediVale credential is the visual reference.
+ */
 export const vales: Vale[] = [
   {
     id: "v1",
-    tipo: "vale",
+    tipo: "credivale",
     monto: 500,
+    disponible: 500,
+    utilizado: 0,
     estado: "activo",
     mayorista: "Calzzapato",
+    mayoristaPersona: "Carlos Pérez",
+    folio: "•••• 2845",
+    titular: "ANA VICTORIA ARAGÓN GÓMEZ",
+    celular: "667 100 3010",
+    postergado: false,
     fechaEmision: "02 ago 2026",
     fechaVigencia: "02 nov 2026",
+    movimientos: [{ id: "m1", concepto: "CrediVale emitido", fecha: "02 ago 2026", monto: 500, tipo: "emision" }],
+    compras: [],
   },
   {
     id: "v2",
-    tipo: "vale",
-    monto: 450,
+    tipo: "credivale",
+    monto: 1000,
+    disponible: 350,
+    utilizado: 650,
     estado: "por_vencer",
     mayorista: "Kelder",
+    mayoristaPersona: "Ana López",
+    folio: "•••• 7710",
+    titular: "ANA VICTORIA ARAGÓN GÓMEZ",
+    celular: "667 100 3010",
+    postergado: true,
     fechaEmision: "14 jul 2026",
     fechaVigencia: "10 ago 2026",
+    movimientos: [
+      { id: "m1", concepto: "CrediVale emitido", fecha: "14 jul 2026", monto: 1000, tipo: "emision" },
+      { id: "m2", concepto: "Compra en Kelder Plaza Forum", fecha: "22 jul 2026", monto: 650, tipo: "uso" },
+    ],
+    compras: [{ id: "cv2", tienda: "Kelder Plaza Forum", fecha: "22 jul 2026", monto: 650 }],
   },
   {
     id: "v3",
-    tipo: "vale",
+    tipo: "credivale",
     monto: 300,
+    disponible: 0,
+    utilizado: 300,
     estado: "usado",
     mayorista: "CalzzaSport",
+    mayoristaPersona: "Carlos Pérez",
+    folio: "•••• 5521",
+    titular: "ANA VICTORIA ARAGÓN GÓMEZ",
+    celular: "667 100 3010",
+    postergado: false,
     fechaEmision: "18 jun 2026",
     fechaVigencia: "18 sep 2026",
+    movimientos: [
+      { id: "m1", concepto: "CrediVale emitido", fecha: "18 jun 2026", monto: 300, tipo: "emision" },
+      { id: "m2", concepto: "Compra en CalzzaSport Centro", fecha: "25 jun 2026", monto: 300, tipo: "uso" },
+    ],
+    compras: [{ id: "cv3", tienda: "CalzzaSport Centro", fecha: "25 jun 2026", monto: 300 }],
   },
   {
     id: "v4",
-    tipo: "vale",
+    tipo: "credivale",
     monto: 150,
+    disponible: 150,
+    utilizado: 0,
     estado: "vencido",
     mayorista: "Urbanna",
+    mayoristaPersona: "Ana López",
+    folio: "•••• 3098",
+    titular: "ANA VICTORIA ARAGÓN GÓMEZ",
+    celular: "667 100 3010",
+    postergado: false,
     fechaEmision: "02 mar 2026",
     fechaVigencia: "02 jun 2026",
+    movimientos: [{ id: "m1", concepto: "CrediVale emitido", fecha: "02 mar 2026", monto: 150, tipo: "emision" }],
+    compras: [],
   },
 ];
 
 export const compras: Compra[] = [
-  { id: "c1", producto: "Cloud 5", marca: "On", sucursal: "Kelder.com", canal: "linea", estado: "En camino", fecha: "12 jul 2026", monto: 2449, cashback: 122, imagen: prodOn, ticketUrl: "#" },
-  { id: "c2", producto: "Suede Classic", marca: "Puma", sucursal: "Kelder Plaza Forum", canal: "tienda", fecha: "16 nov 2025", monto: 1499, cashback: 75, imagen: prodPuma, ticketUrl: "#" },
-  { id: "c3", producto: "Chuck 70", marca: "Converse", sucursal: "CalzzaSport Centro", canal: "tienda", fecha: "30 dic 2025", monto: 1699, cashback: 85, imagen: prodConverse, ticketUrl: "#" },
-  { id: "c4", producto: "Gel-1130", marca: "Asics", sucursal: "Kelder.com", canal: "linea", estado: "Entregado", fecha: "18 oct 2025", monto: 2199, cashback: 110, imagen: prodAsics, ticketUrl: "#" },
+  {
+    id: "c1",
+    tienda: "Calzzapato Galerías Mazatlán",
+    canal: "tienda",
+    fecha: "12 jul 2026",
+    ticket: "#458721",
+    cashback: 217,
+    items: [
+      { marca: "New Balance", modelo: "530", imagen: prodNb530, talla: 27, cantidad: 1, precioUnitario: 2199 },
+      { marca: "Puma", modelo: "Suede Classic", imagen: prodPuma, talla: 26, cantidad: 1, precioUnitario: 1299 },
+      { marca: "Converse", modelo: "Chuck 70", imagen: prodConverse, talla: 24, cantidad: 1, precioUnitario: 849 },
+    ],
+  },
+  {
+    id: "c2",
+    tienda: "Kelder.com",
+    canal: "linea",
+    estado: "En camino",
+    fecha: "05 ago 2026",
+    ticket: "#A-100923",
+    cashback: 45,
+    items: [{ marca: "Adidas", modelo: "Ultraboost Light", imagen: pedidoAdidas, talla: 27, cantidad: 1, precioUnitario: 900 }],
+  },
+  {
+    id: "c3",
+    tienda: "CalzzaSport Centro",
+    canal: "tienda",
+    fecha: "16 nov 2025",
+    ticket: "#451205",
+    cashback: 38,
+    items: [{ marca: "Asics", modelo: "Gel-1130", imagen: prodAsics, talla: 28, cantidad: 1, precioUnitario: 760 }],
+  },
+  {
+    id: "c4",
+    tienda: "Kelder.com",
+    canal: "linea",
+    estado: "Entregado",
+    fecha: "18 oct 2025",
+    ticket: "#A-098877",
+    cashback: 30,
+    items: [{ marca: "On", modelo: "Cloud 5", imagen: prodOn, talla: 26, cantidad: 1, precioUnitario: 600 }],
+  },
 ];
+
+// Compact summary for the Mis compras header. Generado = sum of purchase cashback.
+export const resumenCompras = {
+  cashbackDisponible: 245,
+  cashbackGenerado: compras.reduce((s, c) => s + c.cashback, 0),
+  comprasRealizadas: compras.length,
+};
 
 export const movimientosCashback: MovimientoCashback[] = [
   { id: "m1", tienda: "Adidas Galerías Mazatlán", fecha: "12 jul 2026", monto: 45, tipo: "ingreso" },

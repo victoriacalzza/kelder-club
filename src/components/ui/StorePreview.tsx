@@ -1,5 +1,6 @@
 import { MapPin, Clock, ArrowUpRight } from "lucide-react";
 import type { Tienda } from "@/lib/mock-data";
+import { logoDeUnidad } from "@/lib/mock-data";
 
 /**
  * "Tu tienda más cercana" — connects the digital club to the physical ecosystem.
@@ -12,15 +13,21 @@ export function StorePreview({ tienda, onDirections, onVerTodas }: { tienda: Tie
   return (
     <div className="overflow-hidden rounded-2xl border border-ink-100 bg-white">
       <div className="flex flex-col md:min-h-[240px] md:flex-row">
-        {/* storefront photo — ≈40% */}
-        <div className="h-48 w-full overflow-hidden bg-ink-50 md:h-auto md:w-2/5 md:shrink-0">
-          {tienda.imagen && <img src={tienda.imagen} alt={`Tienda ${tienda.nombre}`} className="h-full w-full object-cover" />}
+        {/* storefront image — real photo when it matches the unit, else the unit's own logo */}
+        <div className="h-48 w-full overflow-hidden md:h-auto md:w-2/5 md:shrink-0">
+          {tienda.imagen ? (
+            <img src={tienda.imagen} alt={`Tienda ${tienda.nombre}`} className="h-full w-full object-cover" />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center bg-ink-950 p-8" aria-hidden="true">
+              <img src={logoDeUnidad(tienda.unidad)} alt="" className="max-h-10 w-auto max-w-[70%] object-contain" style={{ filter: "brightness(0) invert(1)" }} />
+            </div>
+          )}
         </div>
 
         <div className="flex flex-1 flex-col justify-center gap-2 p-6 sm:p-8">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-ink-400">Tu tienda más cercana</p>
+              <p className="text-xs font-semibold uppercase tracking-wide text-ink-400">Tu tienda más cercana · {tienda.unidad}</p>
               <p className="mt-0.5 text-lg font-semibold text-ink-900">{tienda.nombre}</p>
             </div>
             <MapPin size={20} className="shrink-0 text-kelder-600" aria-hidden="true" />

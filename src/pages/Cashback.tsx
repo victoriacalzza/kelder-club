@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { QrCode, PercentCircle, ArrowDownLeft, ArrowUpRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { QrCode, PercentCircle, ArrowDownLeft, ArrowUpRight, ChevronLeft } from "lucide-react";
 import { TopBar } from "@/components/layout/TopBar";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -8,11 +9,19 @@ import { RedeemFlow } from "@/components/modals/RedeemFlow";
 import { cuenta, movimientosCashback, formatMXN } from "@/lib/mock-data";
 
 export function Cashback() {
+  const navigate = useNavigate();
   const [modal, setModal] = useState<"qr" | "canjear" | null>(null);
 
   return (
     <div>
-      <TopBar title="Cashback" subtitle="El cashback que generas en cada compra del grupo." />
+      <button
+        onClick={() => navigate("/compras")}
+        className="mb-4 inline-flex min-h-[44px] items-center gap-1.5 rounded-2xl pr-3 text-sm font-medium text-ink-500 hover:text-ink-900"
+      >
+        <ChevronLeft size={20} aria-hidden="true" />
+        Mis compras
+      </button>
+      <TopBar title="Movimientos de cashback" subtitle="Consulta el cashback que has generado y utilizado." />
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Saldo + acciones */}

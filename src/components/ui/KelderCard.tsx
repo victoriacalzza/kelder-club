@@ -30,12 +30,16 @@ export function KelderCard({ cashback, onShowQR, onUse, onStart }: KelderCardPro
           "radial-gradient(90% 100% at 8% 92%, rgba(122,16,32,0.60) 0%, rgba(15,13,19,0) 55%), linear-gradient(160deg, #1a1720 0%, #100e15 100%)",
       }}
     >
-      {/* product — real photography on the right; original perspective preserved (no rotate/flip) */}
+      {/* product — editorial ecommerce composition: the pair enters from the right, larger
+          and lower, with a very subtle tilt and an almost-imperceptible diffuse shadow so it
+          reads as grounded, not a PNG pasted on top. May crop slightly against overflow-hidden.
+          Smaller and safely clear of the copy on mobile. */}
       <img
         src={heroShoe}
         alt="Tenis Kelder Club"
         aria-hidden="true"
-        className="pointer-events-none absolute right-3 top-1/2 h-[80%] w-[45%] max-w-[520px] -translate-y-1/2 object-contain object-right sm:right-6"
+        className="pointer-events-none absolute right-0 top-[52%] h-[58%] w-[46%] max-w-[280px] -translate-y-1/2 rotate-[-5deg] object-contain object-right sm:-right-6 sm:top-[60%] sm:h-[104%] sm:w-[55%] sm:max-w-[660px]"
+        style={{ filter: "drop-shadow(0 24px 38px rgba(0,0,0,0.5))" }}
       />
 
       <div className="relative p-8 sm:p-10">

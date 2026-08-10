@@ -5,12 +5,12 @@ import { user } from "@/lib/mock-data";
 /**
  * Top navigation — part of the Calzzapato ecosystem. The magnifier is the universal entry
  * point to the dedicated "Buscar productos" screen (/buscar); it is NOT a nav destination,
- * so the primary menu stays Inicio · Cashback · Mis vales · Compras · Tiendas.
+ * so the primary menu stays Inicio · Mis vales · Compras · Tiendas. Cashback is not a
+ * standalone section — it lives in the Home hero and inside Compras.
  */
 const items = [
   { to: "/", label: "Inicio" },
-  { to: "/cashback", label: "Cashback" },
-  { to: "/vales", label: "Mis vales" },
+  { to: "/vales", label: "Crédito y vales" },
   { to: "/compras", label: "Compras" },
   { to: "/tiendas", label: "Tiendas" },
 ];
@@ -54,9 +54,11 @@ export function TopNav() {
           <button
             onClick={() => navigate("/buscar")}
             aria-label="Buscar productos"
-            className="flex h-11 w-11 items-center justify-center rounded-full text-ink-500 hover:bg-white hover:text-ink-900"
+            className="flex h-11 min-w-[44px] items-center gap-2 rounded-full border border-ink-200 bg-white px-2.5 text-ink-500 transition-colors hover:border-ink-300 hover:text-ink-900 md:px-4"
           >
-            <Search size={20} aria-hidden="true" />
+            <Search size={18} aria-hidden="true" />
+            <span className="hidden text-sm font-medium md:inline">Buscar productos</span>
+            <span className="hidden text-sm font-medium sm:inline md:hidden">Buscar</span>
           </button>
           <button aria-label="Notificaciones" className="relative flex h-11 w-11 items-center justify-center rounded-full text-ink-500 hover:bg-white">
             <Bell size={20} aria-hidden="true" />

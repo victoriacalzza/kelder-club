@@ -18,6 +18,10 @@ import Buscarfotostoryboard from "./BuscarFotoStoryboard";
 import Buscarresultadosstoryboard from "./BuscarResultadosStoryboard";
 import Buscarsinresultadosstoryboard from "./BuscarSinResultadosStoryboard";
 import Productodetallestoryboard from "./ProductoDetalleStoryboard";
+import Compradetallestoryboard from "./CompraDetalleStoryboard";
+import Valessincreditostoryboard from "./ValesSinCreditoStoryboard";
+import Valesvaciosstoryboard from "./ValesVaciosStoryboard";
+import Creditodetallestoryboard from "./CreditoDetalleStoryboard";
 
 export default function KelderClubRedesignCanvas() {
   return (
@@ -30,7 +34,7 @@ export default function KelderClubRedesignCanvas() {
       />
       <Storyboard
         id="MisVales"
-        name="2. Mis Vales"
+        name="2. Crédito y vales · A (crédito + vales)"
         component={Valesstoryboard}
         layout={{ x: 0, y: 2100, width: 1440, height: 760 }}
       />
@@ -60,9 +64,27 @@ export default function KelderClubRedesignCanvas() {
       />
       <Storyboard
         id="MisValesVacio"
-        name="7. Mis Vales — vacío"
+        name="Crédito y vales · B (crédito, sin CrediVales)"
         component={Valesemptystoryboard}
-        layout={{ x: 1540, y: 860, width: 1100, height: 560 }}
+        layout={{ x: 1540, y: 860, width: 1100, height: 620 }}
+      />
+      <Storyboard
+        id="ValesSinCredito"
+        name="Crédito y vales · C (sin crédito, con CrediVales)"
+        component={Valessincreditostoryboard}
+        layout={{ x: 6160, y: 5100, width: 1440, height: 900 }}
+      />
+      <Storyboard
+        id="ValesVacios"
+        name="Crédito y vales · D (ambos vacíos)"
+        component={Valesvaciosstoryboard}
+        layout={{ x: 4620, y: 5100, width: 1100, height: 620 }}
+      />
+      <Storyboard
+        id="CreditoDetalle"
+        name="Detalle de Crédito Kelder"
+        component={Creditodetallestoryboard}
+        layout={{ x: 3080, y: 5100, width: 1440, height: 1180 }}
       />
       <Storyboard
         id="MostrarQR"
@@ -90,13 +112,13 @@ export default function KelderClubRedesignCanvas() {
       />
       <Storyboard
         id="CreditoBloqueB"
-        name="Crédito — B · con crédito, sin vales"
+        name="Home — sin CrediVales (estado vacío)"
         component={Homesinvalesstoryboard}
         layout={{ x: 4620, y: 0, width: 1440, height: 1820 }}
       />
       <Storyboard
         id="CreditoBloqueC"
-        name="Crédito — C · sin CrediVale (invitación)"
+        name="Home — sin Crédito Kelder (invitación)"
         component={Homesincredivalestoryboard}
         layout={{ x: 6160, y: 0, width: 1440, height: 1900 }}
       />
@@ -135,6 +157,12 @@ export default function KelderClubRedesignCanvas() {
         name="Detalle de producto"
         component={Productodetallestoryboard}
         layout={{ x: 6160, y: 2860, width: 1440, height: 1120 }}
+      />
+      <Storyboard
+        id="CompraDetalle"
+        name="Detalle de compra (ticket)"
+        component={Compradetallestoryboard}
+        layout={{ x: 6160, y: 4060, width: 1440, height: 980 }}
       />
     </Canvas>
   );

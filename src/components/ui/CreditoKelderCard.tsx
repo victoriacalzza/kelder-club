@@ -1,4 +1,5 @@
 import { ArrowRight } from "lucide-react";
+import { imgCreditoKelder } from "@/lib/mock-data";
 
 /**
  * Home block 2, state C — shown ONLY to members WITHOUT Crédito Kelder. No financial
@@ -23,8 +24,10 @@ export function CreditoKelderCard({ onConocer }: { onConocer?: () => void }) {
           <ArrowRight size={14} aria-hidden="true" />
         </button>
       </div>
-      {/* lifestyle photo — full-bleed right half (real people photography in production) */}
-      <div className="h-40 w-full bg-ink-50 sm:h-auto sm:w-1/2" aria-hidden="true" />
+      {/* lifestyle photo — ~45% of the card, right half, cleanly cropped (never distorted) */}
+      <div className="h-44 w-full shrink-0 overflow-hidden bg-ink-50 sm:h-auto sm:w-[45%]">
+        <img src={imgCreditoKelder} alt="" className="h-full w-full object-cover" />
+      </div>
     </div>
   );
 }
