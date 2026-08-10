@@ -1,6 +1,6 @@
 import { QrCode, CreditCard, Store } from "lucide-react";
 import { cuenta, formatMXN } from "@/lib/mock-data";
-import heroShoe from "../../assets/hero-nb530.png";
+import heroShoe from "../../assets/hero-producto.png";
 
 /**
  * The cashback hero — block 1 and the single heaviest element of the Home. It is the
@@ -30,29 +30,13 @@ export function KelderCard({ cashback, onShowQR, onUse, onStart }: KelderCardPro
           "radial-gradient(90% 100% at 8% 92%, rgba(122,16,32,0.60) 0%, rgba(15,13,19,0) 55%), linear-gradient(160deg, #1a1720 0%, #100e15 100%)",
       }}
     >
-      {/* product — seated on the right, calm slight tilt, cropped at the right edge (no card) */}
-      <div className="pointer-events-none absolute inset-y-0 right-0 w-[52%] sm:w-[48%]" aria-hidden="true">
-        {/* extremely subtle red glow to seat the product into the background */}
-        <div
-          className="absolute right-0 top-1/2 h-[85%] w-full -translate-y-1/2 rounded-full blur-3xl"
-          style={{ background: "radial-gradient(closest-side, rgba(211,18,42,0.20), transparent 72%)" }}
-        />
-        {/* soft ambient shadow beneath the product */}
-        <div
-          className="absolute bottom-[16%] left-1/2 h-5 w-[58%] -translate-x-1/2 rounded-[50%] blur-2xl"
-          style={{ background: "rgba(0,0,0,0.5)" }}
-        />
-        <img
-          src={heroShoe}
-          alt="New Balance 530"
-          className="absolute right-0 top-1/2 w-[124%] max-w-[660px] object-contain"
-          style={{
-            transform: "translateY(-50%) translateX(10%) scaleX(-1) rotate(26deg)",
-            transformOrigin: "center",
-            filter: "drop-shadow(0 22px 30px rgba(0,0,0,0.45))",
-          }}
-        />
-      </div>
+      {/* product — real photography on the right; original perspective preserved (no rotate/flip) */}
+      <img
+        src={heroShoe}
+        alt="Tenis Kelder Club"
+        aria-hidden="true"
+        className="pointer-events-none absolute right-3 top-1/2 h-[80%] w-[45%] max-w-[520px] -translate-y-1/2 object-contain object-right sm:right-6"
+      />
 
       <div className="relative p-8 sm:p-10">
         {tieneCashback ? (
