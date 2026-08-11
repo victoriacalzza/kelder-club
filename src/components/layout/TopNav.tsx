@@ -1,6 +1,7 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import { Search, Bell } from "lucide-react";
 import { user } from "@/lib/mock-data";
+import logoKelderClub from "../../assets/logos/kelder-club.png";
 
 /**
  * Top navigation — part of the Calzzapato ecosystem. The magnifier is the universal entry
@@ -21,11 +22,8 @@ export function TopNav() {
   return (
     <header className="sticky top-0 z-40 border-b border-ink-100 bg-cream/85 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 px-5 sm:px-8">
-        <NavLink to="/" className="flex shrink-0 items-center gap-2">
-          <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-kelder-600 text-sm font-bold text-white">K</span>
-          <span className="hidden text-base font-semibold tracking-tight text-ink-900 sm:inline">
-            Kelder <span className="text-ink-400">Club</span>
-          </span>
+        <NavLink to="/" className="flex shrink-0 items-center" aria-label="Kelder Club — Inicio">
+          <img src={logoKelderClub} alt="Kelder Club" className="h-6 w-auto sm:h-7" />
         </NavLink>
 
         <nav className="flex flex-1 items-center justify-center gap-0.5 overflow-x-auto">
