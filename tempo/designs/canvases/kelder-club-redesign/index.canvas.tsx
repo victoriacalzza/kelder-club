@@ -25,6 +25,7 @@ import Creditodetallestoryboard from "./CreditoDetalleStoryboard";
 import Valesenpagostoryboard from "./ValesEnPagoStoryboard";
 import Valesenpagomobilestoryboard from "./ValesEnPagoMobileStoryboard";
 import Homemobilestoryboard from "./HomeMobileStoryboard";
+import Creditokelderinvitacionmobilestoryboard from "./CreditoKelderInvitacionMobileStoryboard";
 import Valesextravalesstoryboard from "./ValesExtravalesStoryboard";
 import Extravaledetallestoryboard from "./ExtravaleDetalleStoryboard";
 import Buscarmobilestoryboard from "./BuscarMobileStoryboard";
@@ -85,9 +86,9 @@ export default function KelderClubRedesignCanvas() {
       />
       <Storyboard
         id="ValesVacios"
-        name="Crédito y vales · D (ambos vacíos)"
+        name="Crédito y vales · Descubrimiento (ambos vacíos)"
         component={Valesvaciosstoryboard}
-        layout={{ x: 4620, y: 5100, width: 1100, height: 620 }}
+        layout={{ x: 4620, y: 5100, width: 1100, height: 980 }}
       />
       <Storyboard
         id="CreditoDetalle"
@@ -112,6 +113,12 @@ export default function KelderClubRedesignCanvas() {
         name="Home · productos (móvil 390)"
         component={Homemobilestoryboard}
         layout={{ x: 6620, y: 6400, width: 390, height: 2200 }}
+      />
+      <Storyboard
+        id="CreditoKelderInvMobile"
+        name="Invitación Crédito Kelder (móvil 390)"
+        component={Creditokelderinvitacionmobilestoryboard}
+        layout={{ x: 8700, y: 6400, width: 390, height: 620 }}
       />
       <Storyboard
         id="ValesExtravales"

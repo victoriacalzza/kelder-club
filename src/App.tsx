@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AppShell } from "@/components/layout/AppShell";
+import { NativeBackButton } from "@/components/system/NativeBackButton";
 import { Home } from "@/pages/Home";
 import { Vales } from "@/pages/Vales";
 import { ValeDetail } from "@/pages/ValeDetail";
@@ -15,6 +16,7 @@ import { ProductoDetalle } from "@/pages/ProductoDetalle";
 export default function App() {
   return (
     <BrowserRouter>
+      <NativeBackButton />
       <AppShell>
         <Routes>
           <Route path="/" element={<Home />} />

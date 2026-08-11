@@ -683,7 +683,7 @@ function FiltrosDrawer({
         </div>
 
         {/* persistent footer */}
-        <div className="flex shrink-0 items-center gap-3 border-t border-ink-100 px-5 py-4">
+        <div className="flex shrink-0 items-center gap-3 border-t border-ink-100 px-5 py-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
           <button onClick={onClear} className="min-h-[48px] px-2 text-sm font-medium text-ink-500 hover:text-ink-900">
             Limpiar
           </button>

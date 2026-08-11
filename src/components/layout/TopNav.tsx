@@ -20,7 +20,7 @@ export function TopNav() {
   const navigate = useNavigate();
 
   return (
-    <header className="sticky top-0 z-40 border-b border-ink-100 bg-cream/85 backdrop-blur">
+    <header className="sticky top-0 z-40 border-b border-ink-100 bg-cream/85 pt-[env(safe-area-inset-top)] backdrop-blur">
       <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 px-5 sm:px-8">
         <NavLink to="/" className="flex shrink-0 items-center" aria-label="Kelder Club — Inicio">
           <img src={logoKelderClub} alt="Kelder Club" className="h-6 w-auto sm:h-7" />

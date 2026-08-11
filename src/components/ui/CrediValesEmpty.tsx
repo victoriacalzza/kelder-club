@@ -16,7 +16,7 @@ export function CrediValesEmpty({ onConocer }: { onConocer?: () => void }) {
         <p className="text-xs font-semibold uppercase tracking-[0.16em] text-ink-500">Tus CrediVales</p>
         <p className="mt-2 text-xl font-semibold tracking-tight text-ink-900 sm:text-2xl">¿Aún no tienes CrediVales?</p>
         <p className="mx-auto mt-2 max-w-md text-sm text-ink-500 md:mx-0">
-          Cuando recibas un CrediVale podrás consultarlo y darle seguimiento desde aquí.
+          Cuando recibas un CrediVale podrás consultarlo aquí, conocer cuánto puedes utilizar y, una vez usado, dar seguimiento a tus pagos quincenales.
         </p>
         <button
           onClick={onConocer}

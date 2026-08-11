@@ -17,7 +17,7 @@ interface SheetProps {
 export function Sheet({ title, description, onClose, children }: SheetProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-ink-950/40 sm:items-center">
-      <div className="max-h-[92vh] w-full max-w-md overflow-y-auto rounded-t-3xl bg-white p-6 shadow-modal sm:rounded-3xl">
+      <div className="max-h-[92vh] w-full max-w-md overflow-y-auto rounded-t-3xl bg-white p-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))] shadow-modal sm:rounded-3xl sm:pb-6">
         <div className="mb-5 flex items-start justify-between gap-4">
           <div>
             <h2 className="text-xl font-semibold text-ink-900">{title}</h2>

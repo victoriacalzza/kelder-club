@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { TopBar } from "@/components/layout/TopBar";
-import { Button } from "@/components/ui/Button";
 import {
   CrediValeDisponibleCard,
   CrediValeEnPagoCard,
@@ -10,6 +9,7 @@ import {
   ExtravaleCard,
 } from "@/components/ui/CrediValeCard";
 import { CrediValesEmpty } from "@/components/ui/CrediValesEmpty";
+import { CreditoKelderCard } from "@/components/ui/CreditoKelderCard";
 import { vales as valesDefault, creditoKelder, resumenCrediVales, formatMXN, type Vale } from "@/lib/mock-data";
 
 type Tab = "disponibles" | "en_pago" | "extravales" | "vencidos";
@@ -44,26 +44,40 @@ export function Vales({
   const [tab, setTab] = useState<Tab>(initialTab);
   const cuenta = (t: Tab) => vales.filter((v) => v.estado === estadoDeTab[t]).length;
   const lista = vales.filter((v) => v.estado === estadoDeTab[tab]);
+  const sinNada = !tieneCredito && vales.length === 0; // discovery state
 
   return (
     <div>
-      <TopBar title="Crédito y vales" subtitle="Consulta tu Crédito Kelder y administra tus CrediVales." />
+      <TopBar
+        title="Crédito y vales"
+        subtitle={sinNada ? "Consulta aquí tus opciones de crédito y CrediVales." : "Consulta tu Crédito Kelder y administra tus CrediVales."}
+      />
 
-      {/* ───────────── Product A · Crédito Kelder (independent) ───────────── */}
-      <section aria-label="Crédito Kelder" className="mb-16">
-        <h2 className="mb-3 text-xs font-semibold uppercase tracking-[0.16em] text-ink-500">Crédito Kelder</h2>
-        {tieneCredito ? <CreditoBlock onDetalle={() => navigate("/credito")} /> : <CreditoEmpty onConocer={() => navigate("/")} />}
+      {/* ───────────── Product A · Crédito Kelder (independent) ─────────────
+          Has credit → real summary (labelled block). No credit → the red invitation card
+          (it carries its own "Crédito Kelder" identity, so no outer eyebrow). */}
+      <section aria-label="Crédito Kelder" className="mb-10 md:mb-14">
+        {tieneCredito ? (
+          <>
+            <h2 className="mb-3 text-xs font-semibold uppercase tracking-[0.16em] text-ink-500">Crédito Kelder</h2>
+            <CreditoBlock onDetalle={() => navigate("/credito")} />
+          </>
+        ) : (
+          <CreditoKelderCard onConocer={() => navigate("/")} />
+        )}
       </section>
 
-      {/* ───────────── Product B · Mis CrediVales (independent) ───────────── */}
+      {/* ───────────── Product B · Mis CrediVales (independent) ─────────────
+          Has vouchers → labelled tabs + cards. None → the CrediVale invitation banner
+          (white + blue illustration; it carries its own identity, so no outer eyebrow). */}
       <section aria-label="Mis CrediVales">
-        <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-ink-500">Mis CrediVales</h2>
-        <p className="mb-4 mt-1 text-sm text-ink-500">Consulta tus vales, el saldo disponible y los pagos asociados a cada mayorista.</p>
-
         {vales.length === 0 ? (
           <CrediValesEmpty onConocer={() => navigate("/")} />
         ) : (
           <>
+            <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-ink-500">Mis CrediVales</h2>
+            <p className="mb-4 mt-1 text-sm text-ink-500">Consulta tus vales, el saldo disponible y los pagos asociados a cada mayorista.</p>
+
             {/* tabs with counts */}
             <div className="mb-6 inline-flex max-w-full items-center gap-1 overflow-x-auto rounded-full border border-ink-100 bg-white p-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               {tabs.map((t) => (
@@ -262,14 +276,3 @@ function CreditoBlock({ onDetalle }: { onDetalle?: () => void }) {
   );
 }
 
-function CreditoEmpty({ onConocer }: { onConocer?: () => void }) {
-  return (
-    <div className="rounded-2xl border border-ink-100 bg-white p-6 sm:p-7">
-      <p className="text-xl font-semibold text-ink-900">¿Aún no tienes Crédito Kelder?</p>
-      <p className="mt-1 max-w-md text-sm text-ink-500">Conoce las opciones disponibles para comprar a crédito.</p>
-      <Button className="mt-4" onClick={onConocer}>
-        Conocer Crédito Kelder
-      </Button>
-    </div>
-  );
-}
