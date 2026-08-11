@@ -11,7 +11,7 @@ import { formatMXN } from "@/lib/mock-data";
  */
 export function ValeCard({ vale, onClick }: { vale: Vale; onClick?: () => void }) {
   const isCredivale = vale.tipo === "credivale";
-  const muted = vale.estado === "usado" || vale.estado === "vencido";
+  const muted = vale.estado === "vencido";
 
   return (
     <button

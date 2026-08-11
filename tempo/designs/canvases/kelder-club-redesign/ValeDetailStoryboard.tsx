@@ -4,10 +4,11 @@ import { ValeDetail } from "@/pages/ValeDetail";
 import { vales } from "@/lib/mock-data";
 
 export default function ValeDetailStoryboard() {
+  const enPago = vales.find((v) => v.estado === "en_pago") ?? vales[0];
   return (
-    <MemoryRouter initialEntries={["/vales/v1"]}>
+    <MemoryRouter initialEntries={[`/vales/${enPago.id}`]}>
       <AppShell>
-        <ValeDetail vale={vales[0]} />
+        <ValeDetail vale={enPago} />
       </AppShell>
     </MemoryRouter>
   );

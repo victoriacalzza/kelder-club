@@ -22,6 +22,15 @@ import Compradetallestoryboard from "./CompraDetalleStoryboard";
 import Valessincreditostoryboard from "./ValesSinCreditoStoryboard";
 import Valesvaciosstoryboard from "./ValesVaciosStoryboard";
 import Creditodetallestoryboard from "./CreditoDetalleStoryboard";
+import Valesenpagostoryboard from "./ValesEnPagoStoryboard";
+import Valesenpagomobilestoryboard from "./ValesEnPagoMobileStoryboard";
+import Homemobilestoryboard from "./HomeMobileStoryboard";
+import Valesextravalesstoryboard from "./ValesExtravalesStoryboard";
+import Extravaledetallestoryboard from "./ExtravaleDetalleStoryboard";
+import Buscarmobilestoryboard from "./BuscarMobileStoryboard";
+import Buscardrawerstoryboard from "./BuscarDrawerStoryboard";
+import Buscartabletstoryboard from "./BuscarTabletStoryboard";
+import Buscarmobileiniciostoryboard from "./BuscarMobileInicioStoryboard";
 
 export default function KelderClubRedesignCanvas() {
   return (
@@ -58,9 +67,9 @@ export default function KelderClubRedesignCanvas() {
       />
       <Storyboard
         id="DetalleVale"
-        name="6. Detalle de vale"
+        name="6. Detalle de CrediVale"
         component={Valedetailstoryboard}
-        layout={{ x: 1540, y: 0, width: 1440, height: 780 }}
+        layout={{ x: 1540, y: 0, width: 1440, height: 1500 }}
       />
       <Storyboard
         id="MisValesVacio"
@@ -82,9 +91,39 @@ export default function KelderClubRedesignCanvas() {
       />
       <Storyboard
         id="CreditoDetalle"
-        name="Detalle de Crédito Kelder"
+        name="Mi Crédito Kelder"
         component={Creditodetallestoryboard}
-        layout={{ x: 3080, y: 5100, width: 1440, height: 1180 }}
+        layout={{ x: 3080, y: 5100, width: 1440, height: 1120 }}
+      />
+      <Storyboard
+        id="ValesEnPago"
+        name="CrediVales · En pago (desktop)"
+        component={Valesenpagostoryboard}
+        layout={{ x: 4620, y: 6400, width: 1440, height: 1600 }}
+      />
+      <Storyboard
+        id="ValesEnPagoMobile"
+        name="CrediVales · En pago (móvil 390)"
+        component={Valesenpagomobilestoryboard}
+        layout={{ x: 6160, y: 6400, width: 390, height: 1900 }}
+      />
+      <Storyboard
+        id="HomeMobile"
+        name="Home · productos (móvil 390)"
+        component={Homemobilestoryboard}
+        layout={{ x: 6620, y: 6400, width: 390, height: 2200 }}
+      />
+      <Storyboard
+        id="ValesExtravales"
+        name="CrediVales · Extravales"
+        component={Valesextravalesstoryboard}
+        layout={{ x: 7100, y: 6400, width: 1100, height: 900 }}
+      />
+      <Storyboard
+        id="ExtravaleDetalle"
+        name="Detalle de Extravale"
+        component={Extravaledetallestoryboard}
+        layout={{ x: 8280, y: 6400, width: 900, height: 900 }}
       />
       <Storyboard
         id="MostrarQR"
@@ -151,6 +190,30 @@ export default function KelderClubRedesignCanvas() {
         name="Buscar — sin resultados"
         component={Buscarsinresultadosstoryboard}
         layout={{ x: 4620, y: 2860, width: 1440, height: 720 }}
+      />
+      <Storyboard
+        id="BuscarTablet"
+        name="Buscar — tablet (768)"
+        component={Buscartabletstoryboard}
+        layout={{ x: 6160, y: 6100, width: 768, height: 1200 }}
+      />
+      <Storyboard
+        id="BuscarMobile"
+        name="Buscar — móvil resultados (390)"
+        component={Buscarmobilestoryboard}
+        layout={{ x: 7000, y: 6100, width: 390, height: 1200 }}
+      />
+      <Storyboard
+        id="BuscarMobileInicio"
+        name="Buscar — móvil inicio (390)"
+        component={Buscarmobileiniciostoryboard}
+        layout={{ x: 7460, y: 6100, width: 390, height: 900 }}
+      />
+      <Storyboard
+        id="BuscarDrawer"
+        name="Buscar — móvil filtros (390)"
+        component={Buscardrawerstoryboard}
+        layout={{ x: 7920, y: 6100, width: 390, height: 1200 }}
       />
       <Storyboard
         id="ProductoDetalle"

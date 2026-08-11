@@ -8,9 +8,10 @@ import type { ValeEstado } from "@/lib/mock-data";
  * If you adjust this component in any way, ensure the canvas and its asset declaration stay consistent.
  */
 const config: Record<ValeEstado, { label: string; icon: typeof Check; className: string }> = {
-  activo: { label: "Activo", icon: Check, className: "bg-success-100 text-success-600" },
-  por_vencer: { label: "Por vencer", icon: Clock, className: "bg-warning-100 text-warning-600" },
-  usado: { label: "Usado", icon: Check, className: "bg-ink-100 text-ink-500" },
+  disponible: { label: "Disponible", icon: Check, className: "bg-success-100 text-success-600" },
+  en_pago: { label: "En pago", icon: Clock, className: "bg-warning-100 text-warning-600" },
+  // Extravale is available money → the badge reads "Disponible" (green), like an unused voucher.
+  extravale: { label: "Disponible", icon: Check, className: "bg-success-100 text-success-600" },
   vencido: { label: "Vencido", icon: XCircle, className: "bg-ink-100 text-ink-500" },
 };
 

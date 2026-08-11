@@ -48,9 +48,8 @@ defineAsset(StatusPill, {
   libraries: ["core"],
   usageInstructions: "State indicator that always pairs an icon with a label — never color alone. Use for vale/CrediVale status (activo, por_vencer, usado, vencido).",
   variants: {
-    Activo: { props: { estado: "activo" } },
-    PorVencer: { props: { estado: "por_vencer" } },
-    Usado: { props: { estado: "usado" } },
+    Disponible: { props: { estado: "disponible" } },
+    EnPago: { props: { estado: "en_pago" } },
     Vencido: { props: { estado: "vencido" } },
   },
 });
@@ -68,37 +67,37 @@ defineAsset(ValeCard, {
   libraries: ["core"],
   usageInstructions: "Wallet-style card for a vale/reward, proportioned like a loyalty pass (Apple Wallet) rather than a product card. Shows amount, status (icon + text), mayorista and validity. The component keeps a `credivale` branch ready for that FUTURE feature, but only vales are shown today.",
   variants: {
-    Activo: {
+    Disponible: {
       props: {
         vale: {
           id: "v1",
-          tipo: "vale",
+          tipo: "credivale",
           monto: 500,
           disponible: 500,
           utilizado: 0,
-          estado: "activo",
+          estado: "disponible",
           mayorista: "Calzzapato",
           mayoristaPersona: "Carlos Pérez",
-          folio: "•••• 2845",
+          folio: "•••• 6190",
           fechaEmision: "02 ago 2026",
           fechaVigencia: "02 nov 2026",
         },
       },
     },
-    PorVencer: {
+    EnPago: {
       props: {
         vale: {
-          id: "v2",
-          tipo: "vale",
-          monto: 1000,
-          disponible: 350,
-          utilizado: 650,
-          estado: "por_vencer",
+          id: "v3",
+          tipo: "credivale",
+          monto: 1500,
+          disponible: 260,
+          utilizado: 1240,
+          estado: "en_pago",
           mayorista: "Kelder",
           mayoristaPersona: "Ana López",
           folio: "•••• 7710",
-          fechaEmision: "14 jul 2026",
-          fechaVigencia: "10 ago 2026",
+          fechaEmision: "16 jul 2026",
+          fechaVigencia: "16 ene 2027",
         },
       },
     },

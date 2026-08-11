@@ -21,9 +21,8 @@ export default function PrimitivesShowcase() {
       </section>
 
       <section className="flex flex-wrap gap-3">
-        <StatusPill estado="activo" />
-        <StatusPill estado="por_vencer" />
-        <StatusPill estado="usado" />
+        <StatusPill estado="disponible" />
+        <StatusPill estado="en_pago" />
         <StatusPill estado="vencido" />
       </section>
 

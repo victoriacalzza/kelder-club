@@ -1,4 +1,7 @@
-export type ValeEstado = "activo" | "por_vencer" | "usado" | "vencido";
+// DISPONIBLE (unused — no payments), EN PAGO (used — paid every quincena), EXTRAVALE (leftover
+// AVAILABLE balance from a used CrediVale — NOT a debt), or VENCIDO (expired unused). These drive
+// the "Mis CrediVales" tabs.
+export type ValeEstado = "disponible" | "en_pago" | "extravale" | "vencido";
 export type ValeTipo = "vale" | "credivale";
 
 export interface ValeMovimiento {
@@ -7,6 +10,17 @@ export interface ValeMovimiento {
   fecha: string;
   monto: number;
   tipo: "emision" | "uso";
+}
+
+// A scheduled payment — shared shape for both a CrediVale's payment plan and the personal
+// Crédito Kelder plan (they are DIFFERENT products; this is only a common data shape).
+export type PagoEstado = "pagado" | "proximo" | "pendiente";
+export interface PagoProgramado {
+  id: string;
+  numero: number;
+  fecha: string;
+  monto: number;
+  estado: PagoEstado;
 }
 
 export interface Vale {
@@ -26,6 +40,19 @@ export interface Vale {
   titular?: string; // e.g. "ANA VICTORIA ARAGÓN GÓMEZ"
   celular?: string; // e.g. "667 100 3010"
   postergado?: boolean; // real CrediVale "Postergado: Sí/No" flag
+  // Payments the member owes on THIS CrediVale (tied to its mayorista). Independent of
+  // Crédito Kelder — the mayorista relationship lives ONLY inside the CrediVale.
+  saldoPendiente?: number;
+  proximoPago?: { monto: number; fecha: string; enDias: number };
+  pagoActual?: number;
+  pagosTotales?: number;
+  pagos?: PagoProgramado[];
+  // Extravale links: a used CrediVale that left money over points to the Extravale it created;
+  // an Extravale points back to the CrediVale that originated it.
+  extravaleId?: string; // on the origin CrediVale → the Extravale it generated
+  extravaleMonto?: number; // on the origin CrediVale → leftover amount
+  origenId?: string; // on an Extravale → the origin CrediVale's id
+  origenFolio?: string; // on an Extravale → the origin CrediVale's folio
   movimientos?: ValeMovimiento[];
   compras?: { id: string; tienda: string; fecha: string; monto: number }[];
 }
@@ -87,6 +114,9 @@ import imgCreditoKelder from "../assets/credito-kelder.png";
 // Editorial photo for the "Conoce Crédito Kelder" invitation card (Home, no-credit state).
 export { imgCreditoKelder };
 
+export type Departamento = "Mujer" | "Hombre" | "Niños";
+export type TipoProducto = "Calzado" | "Ropa" | "Accesorios";
+
 export interface Producto {
   id: string;
   marca: string;
@@ -95,8 +125,14 @@ export interface Producto {
   imagen?: string;
   categoria?: string;
   color?: string;
-  tallas?: number[];
+  tallas?: number[]; // footwear sizes
+  tallasRopa?: string[]; // apparel/accessory sizes (XS…XXL / Única)
   tiendas?: number; // number of group stores where it's available
+  departamento?: Departamento;
+  tipo?: TipoProducto; // Calzado / Ropa / Accesorios
+  unidad?: UnidadNegocio; // business unit that sells it
+  disponible?: boolean; // in stock (false → out of stock)
+  orden?: number; // recency index for "Más recientes" sorting (higher = newer)
 }
 
 // Cashback a purchase generates (product-search & detail use this — same 5% rule as elsewhere).
@@ -168,6 +204,36 @@ export const pagosMayoristas: PagoMayorista[] = [
 // Mayoristas assigned to the member (used by block B to name where to request a vale).
 export const mayoristasAsignados = ["Ana López"];
 
+/**
+ * CRÉDITO KELDER — a single PERSONAL credit. It has NOTHING to do with mayoristas or with
+ * CrediVales: no mayorista names, no vouchers, no folios. Just the member's own balance,
+ * upcoming payments and history. Never render mayorista data on any Crédito Kelder surface.
+ */
+export interface CreditoKelder {
+  saldoPendiente: number;
+  estado: string; // e.g. "Al corriente"
+  proximoPago: { monto: number; fecha: string; enDias: number };
+  pagoActual: number;
+  pagosTotales: number;
+  pagos: PagoProgramado[];
+}
+
+export const creditoKelder: CreditoKelder = {
+  saldoPendiente: 1860,
+  estado: "Al corriente",
+  proximoPago: { monto: 620, fecha: "18 ago", enDias: 12 },
+  pagoActual: 4,
+  pagosTotales: 6,
+  pagos: [
+    { id: "ck-1", numero: 1, fecha: "05 jun 2026", monto: 620, estado: "pagado" },
+    { id: "ck-2", numero: 2, fecha: "19 jun 2026", monto: 620, estado: "pagado" },
+    { id: "ck-3", numero: 3, fecha: "03 ago 2026", monto: 620, estado: "pagado" },
+    { id: "ck-4", numero: 4, fecha: "18 ago 2026", monto: 620, estado: "proximo" },
+    { id: "ck-5", numero: 5, fecha: "01 sep 2026", monto: 620, estado: "pendiente" },
+    { id: "ck-6", numero: 6, fecha: "15 sep 2026", monto: 620, estado: "pendiente" },
+  ],
+};
+
 // Two-letter initials from a person's name — e.g. "Carlos Pérez" → "CP".
 export function iniciales(nombre: string) {
   return nombre
@@ -179,6 +245,7 @@ export function iniciales(nombre: string) {
 
 export interface Pedido {
   id: string;
+  compraId: string; // the purchase/order this card represents → its detail screen
   producto: string;
   marca: string;
   estado: string;
@@ -188,6 +255,7 @@ export interface Pedido {
 
 export const pedidoActivo: Pedido = {
   id: "ped1",
+  compraId: "c2", // Adidas Ultraboost Light · En camino (Kelder.com)
   producto: "Ultraboost Light",
   marca: "Adidas",
   estado: "En camino",
@@ -341,16 +409,17 @@ export const actividad: Actividad[] = [
  * saldo/pagos. The real CrediVale credential is the visual reference.
  */
 export const vales: Vale[] = [
+  // ── DISPONIBLES · not yet used → no payments, no progress, no debt ──
   {
     id: "v1",
     tipo: "credivale",
     monto: 500,
     disponible: 500,
     utilizado: 0,
-    estado: "activo",
+    estado: "disponible",
     mayorista: "Calzzapato",
     mayoristaPersona: "Carlos Pérez",
-    folio: "•••• 2845",
+    folio: "•••• 6190",
     titular: "ANA VICTORIA ARAGÓN GÓMEZ",
     celular: "667 100 3010",
     postergado: false,
@@ -362,47 +431,114 @@ export const vales: Vale[] = [
   {
     id: "v2",
     tipo: "credivale",
-    monto: 1000,
-    disponible: 350,
-    utilizado: 650,
-    estado: "por_vencer",
+    monto: 750,
+    disponible: 750,
+    utilizado: 0,
+    estado: "disponible",
+    mayorista: "Kelder",
+    mayoristaPersona: "Ana López",
+    folio: "•••• 4102",
+    titular: "ANA VICTORIA ARAGÓN GÓMEZ",
+    celular: "667 100 3010",
+    postergado: false,
+    fechaEmision: "10 ago 2026",
+    fechaVigencia: "18 dic 2026",
+    movimientos: [{ id: "m1", concepto: "CrediVale emitido", fecha: "10 ago 2026", monto: 750, tipo: "emision" }],
+    compras: [],
+  },
+  // ── EN PAGO · already used → quincenal payments, progress, pending balance ──
+  {
+    id: "v3",
+    tipo: "credivale",
+    monto: 1540,
+    disponible: 0,
+    utilizado: 1240,
+    estado: "en_pago",
+    mayorista: "Calzzapato",
+    mayoristaPersona: "Carlos Pérez",
+    folio: "•••• 2845",
+    titular: "ANA VICTORIA ARAGÓN GÓMEZ",
+    celular: "667 100 3010",
+    postergado: false,
+    fechaEmision: "18 jul 2026",
+    fechaVigencia: "18 ene 2027",
+    saldoPendiente: 930,
+    proximoPago: { monto: 310, fecha: "15 ago", enDias: 8 },
+    pagoActual: 2,
+    pagosTotales: 4,
+    // Used $1,240 of a $1,540 CrediVale → the $300 left over became an Extravale (available).
+    extravaleId: "ev1",
+    extravaleMonto: 300,
+    pagos: [
+      { id: "v3p1", numero: 1, fecha: "31 jul 2026", monto: 310, estado: "pagado" },
+      { id: "v3p2", numero: 2, fecha: "15 ago 2026", monto: 310, estado: "proximo" },
+      { id: "v3p3", numero: 3, fecha: "30 ago 2026", monto: 310, estado: "pendiente" },
+      { id: "v3p4", numero: 4, fecha: "14 sep 2026", monto: 310, estado: "pendiente" },
+    ],
+    movimientos: [
+      { id: "m1", concepto: "CrediVale emitido", fecha: "18 jul 2026", monto: 1540, tipo: "emision" },
+      { id: "m2", concepto: "Compra en Calzzapato Galerías", fecha: "20 jul 2026", monto: 1240, tipo: "uso" },
+      { id: "m3", concepto: "Extravale generado por saldo restante", fecha: "20 jul 2026", monto: 300, tipo: "emision" },
+    ],
+    compras: [{ id: "cv3", tienda: "Calzzapato Galerías Mazatlán", fecha: "20 jul 2026", monto: 1240 }],
+  },
+  // ── EXTRAVALE · leftover AVAILABLE balance from a used CrediVale (NOT a debt) ──
+  {
+    id: "ev1",
+    tipo: "credivale",
+    monto: 300,
+    disponible: 300,
+    utilizado: 0,
+    estado: "extravale",
+    mayorista: "Calzzapato",
+    mayoristaPersona: "Carlos Pérez",
+    folio: "•••• 9021",
+    titular: "ANA VICTORIA ARAGÓN GÓMEZ",
+    celular: "667 100 3010",
+    postergado: false,
+    fechaEmision: "20 jul 2026",
+    fechaVigencia: "18 ene 2027",
+    origenId: "v3",
+    origenFolio: "•••• 2845",
+    movimientos: [{ id: "m1", concepto: "Extravale generado por saldo restante de CrediVale •••• 2845", fecha: "20 jul 2026", monto: 300, tipo: "emision" }],
+    compras: [],
+  },
+  {
+    id: "v4",
+    tipo: "credivale",
+    monto: 4000,
+    disponible: 280,
+    utilizado: 3720,
+    estado: "en_pago",
     mayorista: "Kelder",
     mayoristaPersona: "Ana López",
     folio: "•••• 7710",
     titular: "ANA VICTORIA ARAGÓN GÓMEZ",
     celular: "667 100 3010",
-    postergado: true,
-    fechaEmision: "14 jul 2026",
-    fechaVigencia: "10 ago 2026",
-    movimientos: [
-      { id: "m1", concepto: "CrediVale emitido", fecha: "14 jul 2026", monto: 1000, tipo: "emision" },
-      { id: "m2", concepto: "Compra en Kelder Plaza Forum", fecha: "22 jul 2026", monto: 650, tipo: "uso" },
-    ],
-    compras: [{ id: "cv2", tienda: "Kelder Plaza Forum", fecha: "22 jul 2026", monto: 650 }],
-  },
-  {
-    id: "v3",
-    tipo: "credivale",
-    monto: 300,
-    disponible: 0,
-    utilizado: 300,
-    estado: "usado",
-    mayorista: "CalzzaSport",
-    mayoristaPersona: "Carlos Pérez",
-    folio: "•••• 5521",
-    titular: "ANA VICTORIA ARAGÓN GÓMEZ",
-    celular: "667 100 3010",
     postergado: false,
-    fechaEmision: "18 jun 2026",
-    fechaVigencia: "18 sep 2026",
-    movimientos: [
-      { id: "m1", concepto: "CrediVale emitido", fecha: "18 jun 2026", monto: 300, tipo: "emision" },
-      { id: "m2", concepto: "Compra en CalzzaSport Centro", fecha: "25 jun 2026", monto: 300, tipo: "uso" },
+    fechaEmision: "16 jul 2026",
+    fechaVigencia: "16 ene 2027",
+    saldoPendiente: 2480,
+    proximoPago: { monto: 620, fecha: "15 ago", enDias: 8 },
+    pagoActual: 3,
+    pagosTotales: 6,
+    pagos: [
+      { id: "v4p1", numero: 1, fecha: "16 jul 2026", monto: 620, estado: "pagado" },
+      { id: "v4p2", numero: 2, fecha: "31 jul 2026", monto: 620, estado: "pagado" },
+      { id: "v4p3", numero: 3, fecha: "15 ago 2026", monto: 620, estado: "proximo" },
+      { id: "v4p4", numero: 4, fecha: "30 ago 2026", monto: 620, estado: "pendiente" },
+      { id: "v4p5", numero: 5, fecha: "14 sep 2026", monto: 620, estado: "pendiente" },
+      { id: "v4p6", numero: 6, fecha: "29 sep 2026", monto: 620, estado: "pendiente" },
     ],
-    compras: [{ id: "cv3", tienda: "CalzzaSport Centro", fecha: "25 jun 2026", monto: 300 }],
+    movimientos: [
+      { id: "m1", concepto: "CrediVale emitido", fecha: "16 jul 2026", monto: 4000, tipo: "emision" },
+      { id: "m2", concepto: "Compra en Kelder Plaza Forum", fecha: "18 jul 2026", monto: 3720, tipo: "uso" },
+    ],
+    compras: [{ id: "cv4", tienda: "Kelder Plaza Forum", fecha: "18 jul 2026", monto: 3720 }],
   },
+  // ── VENCIDO · expired without being used → no payments ──
   {
-    id: "v4",
+    id: "v5",
     tipo: "credivale",
     monto: 150,
     disponible: 150,
@@ -420,6 +556,41 @@ export const vales: Vale[] = [
     compras: [],
   },
 ];
+
+// CrediVales currently EN PAGO (used → generating quincenal payments). Powers the Home
+// "Tus CrediVales" compromisos, the "En pago" tab summary and the count. Soonest first.
+export const credivalesEnPago = vales
+  .filter((v) => v.estado === "en_pago")
+  .sort((a, b) => (a.proximoPago?.enDias ?? 99) - (b.proximoPago?.enDias ?? 99));
+
+// CrediVales DISPONIBLES (unused → NOT a debt). Shown apart from the en-pago ones so an
+// available voucher is never read as money owed.
+export const credivalesDisponibles = vales.filter((v) => v.estado === "disponible");
+export const resumenCrediValesDisponibles = {
+  count: credivalesDisponibles.length,
+  total: credivalesDisponibles.reduce((s, v) => s + v.monto, 0),
+};
+
+// Extravales — leftover AVAILABLE balances (never a debt). Live in their own tab.
+export const extravales = vales.filter((v) => v.estado === "extravale");
+export function valePorId(id?: string) {
+  return vales.find((v) => v.id === id);
+}
+
+/**
+ * Summary of the member's EN PAGO CrediVales — a distinct figure from Crédito Kelder.
+ * "Próxima quincena" sums only the payments that fall in the soonest fortnight, so the user
+ * sees exactly what to pay next (e.g. $310 + $620 = $930).
+ */
+export const resumenCrediVales = (() => {
+  const enPago = credivalesEnPago;
+  const saldoPendiente = enPago.reduce((s, v) => s + (v.saldoPendiente ?? 0), 0);
+  const proximaFecha = enPago[0]?.proximoPago?.fecha ?? "—";
+  const proximaQuincena = enPago
+    .filter((v) => v.proximoPago?.fecha === proximaFecha)
+    .reduce((s, v) => s + (v.proximoPago?.monto ?? 0), 0);
+  return { saldoPendiente, proximaQuincena, proximaFecha, enPago: enPago.length };
+})();
 
 export const compras: Compra[] = [
   {
@@ -481,15 +652,61 @@ export const movimientosCashback: MovimientoCashback[] = [
   { id: "m5", tienda: "Adidas Paseo Mochis", fecha: "18 oct 2025", monto: 10, tipo: "ingreso" },
 ];
 
-// Full searchable catalog across the group's stores.
+// Full searchable catalog across the group's stores. First 6 keep their ids/images (used by
+// Home "Recomendados" and product detail); the rest broaden departments, types and stores so
+// the search filters have something real to act on.
 export const catalogo: Producto[] = [
-  { id: "p1", marca: "On", modelo: "Cloud 5", precio: 2449, imagen: prodOn, categoria: "Running", color: "Blanco", tallas: [25, 26, 27, 28], tiendas: 3 },
-  { id: "p2", marca: "Puma", modelo: "Suede Classic", precio: 1499, imagen: prodPuma, categoria: "Lifestyle", color: "Negro", tallas: [24, 25, 26, 27], tiendas: 5 },
-  { id: "p3", marca: "Converse", modelo: "Chuck 70", precio: 1699, imagen: prodConverse, categoria: "Lifestyle", color: "Negro", tallas: [23, 24, 25, 26, 27], tiendas: 2 },
-  { id: "p4", marca: "Asics", modelo: "Gel-1130", precio: 2199, imagen: prodAsics, categoria: "Running", color: "Plata", tallas: [26, 27, 28, 29], tiendas: 6 },
-  { id: "p5", marca: "New Balance", modelo: "530", precio: 2499, imagen: prodNb530, categoria: "Running", color: "Blanco", tallas: [24, 25, 26, 27, 28], tiendas: 4 },
-  { id: "p6", marca: "On", modelo: "Cloudmonster", precio: 3199, imagen: prodOn, categoria: "Running", color: "Gris", tallas: [26, 27, 28], tiendas: 3 },
+  { id: "p1", marca: "On", modelo: "Cloud 5", precio: 2449, imagen: prodOn, categoria: "Running", color: "Blanco", tallas: [25, 26, 27, 28], tiendas: 3, departamento: "Mujer", tipo: "Calzado", unidad: "Kelder", disponible: true, orden: 16 },
+  { id: "p2", marca: "Puma", modelo: "Suede Classic", precio: 1499, imagen: prodPuma, categoria: "Lifestyle", color: "Negro", tallas: [24, 25, 26, 27], tiendas: 5, departamento: "Hombre", tipo: "Calzado", unidad: "CalzzaSport", disponible: true, orden: 12 },
+  { id: "p3", marca: "Converse", modelo: "Chuck 70", precio: 1699, imagen: prodConverse, categoria: "Lifestyle", color: "Negro", tallas: [23, 24, 25, 26, 27], tiendas: 2, departamento: "Mujer", tipo: "Calzado", unidad: "Urbanna", disponible: true, orden: 11 },
+  { id: "p4", marca: "Asics", modelo: "Gel-1130", precio: 2199, imagen: prodAsics, categoria: "Running", color: "Plata", tallas: [26, 27, 28, 29], tiendas: 6, departamento: "Hombre", tipo: "Calzado", unidad: "Calzzapato", disponible: true, orden: 9 },
+  { id: "p5", marca: "New Balance", modelo: "530", precio: 2499, imagen: prodNb530, categoria: "Running", color: "Blanco", tallas: [24, 25, 26, 27, 28], tiendas: 4, departamento: "Hombre", tipo: "Calzado", unidad: "Calzzapato", disponible: true, orden: 15 },
+  { id: "p6", marca: "On", modelo: "Cloudmonster", precio: 3199, imagen: prodOn, categoria: "Running", color: "Gris", tallas: [26, 27, 28], tiendas: 3, departamento: "Mujer", tipo: "Calzado", unidad: "Kelder", disponible: false, orden: 8 },
+  { id: "p7", marca: "Adidas", modelo: "Ultraboost Light", precio: 2899, imagen: pedidoAdidas, categoria: "Running", color: "Negro", tallas: [25, 26, 27, 28], tiendas: 4, departamento: "Hombre", tipo: "Calzado", unidad: "Kelder", disponible: true, orden: 14 },
+  { id: "p8", marca: "Nike", modelo: "Court Vision", precio: 1799, categoria: "Lifestyle", color: "Blanco", tallas: [24, 25, 26, 27], tiendas: 3, departamento: "Mujer", tipo: "Calzado", unidad: "CalzzaSport", disponible: true, orden: 13 },
+  { id: "p9", marca: "Nike", modelo: "Revolution 7", precio: 1599, categoria: "Running", color: "Negro", tallas: [25, 26, 27, 28, 29], tiendas: 5, departamento: "Hombre", tipo: "Calzado", unidad: "Calzzapato", disponible: true, orden: 10 },
+  { id: "p10", marca: "CalzaKids", modelo: "Runner Jr", precio: 699, categoria: "Lifestyle", color: "Blanco", tallas: [18, 19, 20, 21, 22], tiendas: 4, departamento: "Niños", tipo: "Calzado", unidad: "CalzaKids", disponible: true, orden: 7 },
+  { id: "p11", marca: "Puma", modelo: "Sudadera Essentials", precio: 899, categoria: "Ropa", color: "Negro", tallasRopa: ["S", "M", "L", "XL"], tiendas: 3, departamento: "Hombre", tipo: "Ropa", unidad: "CalzzaSport", disponible: true, orden: 6 },
+  { id: "p12", marca: "Nike", modelo: "Playera Sportswear", precio: 599, categoria: "Ropa", color: "Blanco", tallasRopa: ["XS", "S", "M", "L"], tiendas: 4, departamento: "Mujer", tipo: "Ropa", unidad: "Urbanna", disponible: true, orden: 5 },
+  { id: "p13", marca: "Adidas", modelo: "Pants Tiro", precio: 1099, categoria: "Ropa", color: "Negro", tallasRopa: ["S", "M", "L", "XL"], tiendas: 2, departamento: "Hombre", tipo: "Ropa", unidad: "Kelder", disponible: false, orden: 4 },
+  { id: "p14", marca: "Urbanna", modelo: "Gorra Logo", precio: 399, categoria: "Accesorios", color: "Negro", tallasRopa: ["Única"], tiendas: 3, departamento: "Hombre", tipo: "Accesorios", unidad: "Urbanna", disponible: true, orden: 3 },
+  { id: "p15", marca: "Kelder", modelo: "Mochila Urbana", precio: 799, categoria: "Accesorios", color: "Gris", tallasRopa: ["Única"], tiendas: 5, departamento: "Mujer", tipo: "Accesorios", unidad: "Kelder", disponible: true, orden: 2 },
+  { id: "p16", marca: "CalzaKids", modelo: "Tenis Escolar", precio: 549, categoria: "Lifestyle", color: "Negro", tallas: [17, 18, 19, 20, 21], tiendas: 4, departamento: "Niños", tipo: "Calzado", unidad: "CalzaKids", disponible: true, orden: 1 },
 ];
+
+// Search-filter vocabularies (order matters for the UI). Sizes are category-aware.
+export const departamentos: Departamento[] = ["Mujer", "Hombre", "Niños"];
+export const tiposProducto: TipoProducto[] = ["Calzado", "Ropa", "Accesorios"];
+export const marcasBusqueda = ["Nike", "Adidas", "Puma", "On", "New Balance", "Asics", "Converse", "CalzaKids", "Urbanna", "Kelder"];
+export const coloresBusqueda = ["Blanco", "Negro", "Gris", "Plata"];
+export const tallasCalzado = ["17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29"];
+export const tallasRopa = ["XS", "S", "M", "L", "XL", "XXL"];
+export const tallasAccesorio = ["Única"];
+
+export interface RangoPrecio {
+  id: string;
+  label: string;
+  min: number;
+  max: number; // Infinity for open-ended
+}
+export const rangosPrecio: RangoPrecio[] = [
+  { id: "r1", label: "Hasta $1,000", min: 0, max: 1000 },
+  { id: "r2", label: "$1,000 – $2,000", min: 1000, max: 2000 },
+  { id: "r3", label: "$2,000 – $3,000", min: 2000, max: 3000 },
+  { id: "r4", label: "Más de $3,000", min: 3000, max: Infinity },
+];
+
+// Category-aware size options for the Talla filter.
+export function tallasDeTipo(tipo: TipoProducto | null): string[] {
+  if (tipo === "Ropa") return tallasRopa;
+  if (tipo === "Accesorios") return tallasAccesorio;
+  return tallasCalzado; // Calzado or unspecified
+}
+
+// All sizes a product offers, as strings (footwear numbers + apparel letters).
+export function tallasDeProducto(p: Producto): string[] {
+  return [...(p.tallas ?? []).map(String), ...(p.tallasRopa ?? [])];
+}
 
 // Home "Recomendados para ti" — a curated subset of the catalog.
 export const recomendaciones: Producto[] = catalogo.slice(0, 4);
