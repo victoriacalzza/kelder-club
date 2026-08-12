@@ -149,9 +149,9 @@ export default function KelderClubRedesignCanvas() {
       />
       <Storyboard
         id="MobileClub"
-        name="App móvil · Mi Club (390×844)"
+        name="App móvil · Mi Club (390)"
         component={Mobileclubstoryboard}
-        layout={{ x: 9700, y: 6400, width: 390, height: 844 }}
+        layout={{ x: 9700, y: 6400, width: 390, height: 1180 }}
       />
       <Storyboard
         id="MobilePagar"

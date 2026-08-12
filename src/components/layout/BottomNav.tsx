@@ -1,21 +1,26 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { Home, Compass, Store, Sparkles, QrCode } from "lucide-react";
+import { Home, Wallet, Store, Sparkles, QrCode } from "lucide-react";
 
 /**
- * Mobile bottom navigation (hidden on desktop, where the top nav stays). Inicio · Explorar ·
- * [Pagar] · Tiendas · Mi Club. The center Pagar FAB is the app's primary action: one tap opens
- * the payment sheet over the current screen. Respects the iOS home indicator via safe-area.
+ * Mobile bottom navigation (hidden on desktop, where the top nav stays). Inicio · Crédito y
+ * Vales · [Pagar] · Tiendas · Mi Club. Product search lives in the header magnifier, not here.
+ * The center Pagar FAB is the app's primary action: one tap opens the payment sheet over the
+ * current screen. Respects the iOS home indicator via safe-area.
  */
 const tabs = [
   { to: "/", label: "Inicio", icon: Home, match: (p: string) => p === "/" },
-  { to: "/buscar", label: "Explorar", icon: Compass, match: (p: string) => p.startsWith("/buscar") || p.startsWith("/producto") },
+  {
+    to: "/vales",
+    label: "Crédito y Vales",
+    icon: Wallet,
+    match: (p: string) => p.startsWith("/vales") || p.startsWith("/credito"),
+  },
   { to: "/tiendas", label: "Tiendas", icon: Store, match: (p: string) => p.startsWith("/tiendas") },
   {
     to: "/club",
     label: "Mi Club",
     icon: Sparkles,
-    match: (p: string) =>
-      ["/club", "/cashback", "/vales", "/credito", "/compras", "/perfil"].some((r) => p.startsWith(r)),
+    match: (p: string) => ["/club", "/cashback", "/compras", "/perfil", "/proximamente"].some((r) => p.startsWith(r)),
   },
 ];
 
@@ -29,11 +34,11 @@ export function BottomNav({ onPagar }: { onPagar: () => void }) {
     return (
       <NavLink
         to={tab.to}
-        className="flex flex-1 flex-col items-center justify-center gap-0.5 py-2"
+        className="flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 px-0.5 py-2"
         aria-label={tab.label}
       >
         <Icon size={22} strokeWidth={active ? 2.4 : 2} className={active ? "text-kelder-600" : "text-ink-400"} aria-hidden="true" />
-        <span className={`text-[11px] font-medium ${active ? "text-kelder-600" : "text-ink-500"}`}>{tab.label}</span>
+        <span className={`max-w-full truncate text-[10px] font-medium leading-tight ${active ? "text-kelder-600" : "text-ink-500"}`}>{tab.label}</span>
       </NavLink>
     );
   };

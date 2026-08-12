@@ -15,67 +15,99 @@ interface KelderCardProps {
   onShowQR?: () => void;
   onUse?: () => void;
   onStart?: () => void;
+  onVerMovimientos?: () => void;
 }
 
-export function KelderCard({ cashback, onShowQR, onUse, onStart }: KelderCardProps) {
+export function KelderCard({ cashback, onShowQR, onUse, onStart, onVerMovimientos }: KelderCardProps) {
   const tieneCashback = cashback > 0;
   const { faltan, meta } = cuenta.proximaRecompensa;
   const progreso = Math.min(100, Math.round(((meta - faltan) / meta) * 100));
 
   return (
     <div
-      className="rise relative flex min-h-[360px] flex-col justify-end overflow-hidden rounded-2xl text-white shadow-card"
+      className="rise relative flex min-h-[188px] flex-col justify-end overflow-hidden rounded-2xl text-white shadow-card lg:min-h-[360px]"
       style={{
         background:
           "radial-gradient(90% 100% at 8% 92%, rgba(122,16,32,0.60) 0%, rgba(15,13,19,0) 55%), linear-gradient(160deg, #1a1720 0%, #100e15 100%)",
       }}
     >
-      {/* product — editorial ecommerce composition: the pair enters from the right, larger
-          and lower, with a very subtle tilt and an almost-imperceptible diffuse shadow so it
-          reads as grounded, not a PNG pasted on top. May crop slightly against overflow-hidden.
-          Smaller and safely clear of the copy on mobile. */}
+      {/* product — compact top-right on mobile (clear of the copy and the actions), full
+          editorial composition on desktop. */}
       <img
         src={heroShoe}
         alt="Tenis Kelder Club"
         aria-hidden="true"
-        className="pointer-events-none absolute right-0 top-[52%] h-[58%] w-[46%] max-w-[280px] -translate-y-1/2 rotate-[-5deg] object-contain object-right sm:-right-6 sm:top-[60%] sm:h-[104%] sm:w-[55%] sm:max-w-[660px]"
+        className="pointer-events-none absolute right-1 top-3 h-[42%] w-[34%] max-w-[136px] rotate-[-6deg] object-contain object-right lg:right-[-1.5rem] lg:top-[60%] lg:h-[104%] lg:w-[55%] lg:max-w-[660px] lg:-translate-y-1/2 lg:rotate-[-5deg]"
         style={{ filter: "drop-shadow(0 24px 38px rgba(0,0,0,0.5))" }}
       />
 
-      <div className="relative p-6 sm:p-8 lg:p-10">
+      <div className="relative p-5 sm:p-6 lg:p-10">
         {tieneCashback ? (
-          <div className="max-w-[380px]">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/60">Tu cashback disponible</p>
-            <p className="mt-2 text-6xl font-semibold leading-none tracking-tight sm:text-7xl">{formatMXN(cashback)}</p>
-            <p className="mt-4 text-[15px] leading-relaxed text-white/75">Es tuyo. Úsalo para ahorrar en tu próxima compra.</p>
-
-            <div className="mt-7 space-y-3">
-              <button
-                onClick={onShowQR}
-                className="lift flex min-h-[56px] w-full items-center justify-center gap-2.5 rounded-full bg-white text-[15px] font-semibold text-ink-950 hover:bg-white/90"
-              >
-                <QrCode size={20} aria-hidden="true" />
-                Mostrar QR para pagar
-              </button>
-              <button
-                onClick={onUse}
-                className="flex min-h-[56px] w-full items-center justify-center gap-2.5 rounded-full border border-white/10 bg-white/[0.06] text-[15px] font-semibold text-white hover:bg-white/[0.12]"
-              >
-                <CreditCard size={19} aria-hidden="true" />
-                Canjear en línea
-              </button>
-            </div>
-
-            {/* progress — message first, short bar, no numeric percent */}
-            <div className="mt-6">
-              <p className="text-sm text-white/70">
-                Te faltan <span className="font-semibold text-white">{formatMXN(faltan)}</span> para tu próxima recompensa
+          <>
+            {/* MOBILE / tablet — compact: amount + progress + secondary actions (QR lives in Pagar) */}
+            <div className="lg:hidden">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-white/60">Tu cashback</p>
+              <p className="mt-1 flex items-baseline gap-2">
+                <span className="text-5xl font-semibold leading-none tracking-tight">{formatMXN(cashback)}</span>
+                <span className="text-sm text-white/70">disponibles</span>
               </p>
-              <div className="mt-2 h-1 w-40 overflow-hidden rounded-full bg-white/15 sm:w-52">
-                <div className="h-full rounded-full bg-white" style={{ width: `${progreso}%` }} />
+              <div className="mt-4 max-w-[260px]">
+                <p className="text-[13px] leading-snug text-white/70">
+                  Te faltan <span className="font-semibold text-white">{formatMXN(faltan)}</span> para tu próxima recompensa
+                </p>
+                <div className="mt-2 h-1 overflow-hidden rounded-full bg-white/15">
+                  <div className="h-full rounded-full bg-white" style={{ width: `${progreso}%` }} />
+                </div>
+              </div>
+              <div className="mt-4 flex gap-2.5">
+                <button
+                  onClick={onVerMovimientos}
+                  className="flex min-h-[44px] flex-1 items-center justify-center rounded-full bg-white text-[14px] font-semibold text-ink-950 hover:bg-white/90"
+                >
+                  Ver movimientos
+                </button>
+                <button
+                  onClick={onUse}
+                  className="flex min-h-[44px] flex-1 items-center justify-center rounded-full border border-white/15 bg-white/[0.06] text-[14px] font-semibold text-white hover:bg-white/[0.12]"
+                >
+                  Canjear en línea
+                </button>
               </div>
             </div>
-          </div>
+
+            {/* DESKTOP — full hero (unchanged) */}
+            <div className="hidden max-w-[380px] lg:block">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/60">Tu cashback disponible</p>
+              <p className="mt-2 text-7xl font-semibold leading-none tracking-tight">{formatMXN(cashback)}</p>
+              <p className="mt-4 text-[15px] leading-relaxed text-white/75">Es tuyo. Úsalo para ahorrar en tu próxima compra.</p>
+
+              <div className="mt-7 space-y-3">
+                <button
+                  onClick={onShowQR}
+                  className="lift flex min-h-[56px] w-full items-center justify-center gap-2.5 rounded-full bg-white text-[15px] font-semibold text-ink-950 hover:bg-white/90"
+                >
+                  <QrCode size={20} aria-hidden="true" />
+                  Mostrar QR para pagar
+                </button>
+                <button
+                  onClick={onUse}
+                  className="flex min-h-[56px] w-full items-center justify-center gap-2.5 rounded-full border border-white/10 bg-white/[0.06] text-[15px] font-semibold text-white hover:bg-white/[0.12]"
+                >
+                  <CreditCard size={19} aria-hidden="true" />
+                  Canjear en línea
+                </button>
+              </div>
+
+              <div className="mt-6">
+                <p className="text-sm text-white/70">
+                  Te faltan <span className="font-semibold text-white">{formatMXN(faltan)}</span> para tu próxima recompensa
+                </p>
+                <div className="mt-2 h-1 w-52 overflow-hidden rounded-full bg-white/15">
+                  <div className="h-full rounded-full bg-white" style={{ width: `${progreso}%` }} />
+                </div>
+              </div>
+            </div>
+          </>
         ) : (
           <>
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/60">Cashback</p>

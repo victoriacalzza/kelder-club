@@ -2,10 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { KelderCard } from "@/components/ui/KelderCard";
-import { CreditoKelderHome } from "@/components/ui/CreditoKelderHome";
-import { CrediValesEnPagoHome, CrediValesDisponiblesHome } from "@/components/ui/CrediValesHome";
+import { CreditoVadesResumen } from "@/components/ui/CreditoVadesResumen";
 import { CreditoKelderCard } from "@/components/ui/CreditoKelderCard";
-import { CrediValesEmpty } from "@/components/ui/CrediValesEmpty";
 import { OrderInProgress } from "@/components/ui/OrderInProgress";
 import { ProductCard } from "@/components/ui/ProductCard";
 import { PromoBanner } from "@/components/ui/PromoBanner";
@@ -44,6 +42,7 @@ export function Home({ profile = perfilDemo }: { profile?: ClientProfile }) {
           onShowQR={() => setModal("qr")}
           onUse={() => setModal("canjear")}
           onStart={() => navigate("/tiendas")}
+          onVerMovimientos={() => navigate("/cashback")}
         />
       </div>
 
@@ -52,26 +51,15 @@ export function Home({ profile = perfilDemo }: { profile?: ClientProfile }) {
         <MarcasMarquee onSelect={() => navigate("/buscar")} />
       </div>
 
-      {/* 2 · Financial products — each is its own MODULE with a bold colored product header,
-          so Crédito Kelder (red) and CrediVales (charcoal) never look like the same product.
-          CrediVales "en pago" (a debt) and "disponibles" (usable) are kept strictly apart. */}
-      {profile.credito === "no_miembro" ? (
-        <div className="mt-8">
+      {/* 2 · Crédito y vales — the Home only RESUMES and DIRECTS into the dedicated tab.
+          When the member has neither product, a single compact invitation instead. */}
+      <div className="mt-8">
+        {profile.credito === "no_miembro" ? (
           <CreditoKelderCard onConocer={() => navigate("/vales")} />
-        </div>
-      ) : (
-        <div className="mt-8 space-y-4">
-          <CreditoKelderHome onVer={() => navigate("/credito")} />
-          {profile.credito === "con_vales" ? (
-            <>
-              <CrediValesEnPagoHome onVer={() => navigate("/vales")} />
-              <CrediValesDisponiblesHome onVer={() => navigate("/vales")} />
-            </>
-          ) : (
-            <CrediValesEmpty onConocer={() => navigate("/vales")} />
-          )}
-        </div>
-      )}
+        ) : (
+          <CreditoVadesResumen onVer={() => navigate("/vales")} />
+        )}
+      </div>
 
       {/* 3 · Order in progress — only when one exists */}
       {profile.pedidoEnCurso && (

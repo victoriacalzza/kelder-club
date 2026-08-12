@@ -1,111 +1,148 @@
 import { useNavigate } from "react-router-dom";
 import {
-  PercentCircle,
-  ShoppingBag,
-  CreditCard,
-  Ticket,
   Gift,
-  BadgePercent,
-  Settings,
+  ShoppingBag,
+  PercentCircle,
+  Bell,
+  User,
+  Heart,
+  Store,
+  SlidersHorizontal,
+  HelpCircle,
+  MessageCircle,
+  FileText,
   ChevronRight,
-  ArrowRight,
+  LogOut,
 } from "lucide-react";
-import { TopBar } from "@/components/layout/TopBar";
-import {
-  user,
-  cuenta,
-  creditoKelder,
-  credivalesEnPago,
-  credivalesDisponibles,
-  formatMXN,
-} from "@/lib/mock-data";
+import { user } from "@/lib/mock-data";
 
 /**
- * "Mi Club" — the member's personal hub. It doesn't duplicate any logic; it's a clean set of
- * entry points into the existing sections (cashback, compras, Crédito Kelder, CrediVales,
- * perfil) plus placeholders for benefits/coupons that will come later. Crédito Kelder and
- * CrediVale stay as two DIFFERENT products, each with its own entry.
+ * "Mi Club" — the member's personal center: "everything about me, my purchases, benefits and
+ * settings." Architecture inspired by a clean app menu (primary tiles on top, tidy lists
+ * below) but with Kelder's own premium identity. It never answers "how much credit / how many
+ * CrediVales / how do I pay" — those live in the Crédito y Vales tab and the Pagar action —
+ * and it doesn't repeat the cashback balance (that's on the Home).
  */
-interface Entry {
+interface Acceso {
   label: string;
   desc: string;
-  icon: typeof PercentCircle;
+  icon: typeof Gift;
   tint: string;
-  to?: string;
-  soon?: boolean;
+  to: string;
 }
+interface Fila {
+  label: string;
+  desc?: string;
+  icon: typeof User;
+  to: string;
+}
+
+const accesos: Acceso[] = [
+  { label: "Beneficios", desc: "Recompensas y promociones", icon: Gift, tint: "bg-warning-100 text-warning-600", to: "/proximamente/beneficios" },
+  { label: "Mis compras", desc: "Tickets y pedidos", icon: ShoppingBag, tint: "bg-info-100 text-info-700", to: "/compras" },
+  { label: "Mi cashback", desc: "Saldo y movimientos", icon: PercentCircle, tint: "bg-success-100 text-success-600", to: "/cashback" },
+  { label: "Notificaciones", desc: "Avisos y novedades", icon: Bell, tint: "bg-kelder-50 text-kelder-600", to: "/proximamente/notificaciones" },
+];
+
+const cuenta: Fila[] = [
+  { label: "Mis datos", desc: "Información personal", icon: User, to: "/perfil" },
+  { label: "Mis favoritos", desc: "Productos que guardaste", icon: Heart, to: "/proximamente/favoritos" },
+  { label: "Mi tienda preferida", desc: "Tu sucursal principal", icon: Store, to: "/tiendas" },
+  { label: "Preferencias", desc: "Configuración de tu experiencia", icon: SlidersHorizontal, to: "/proximamente/preferencias" },
+];
+
+const ayuda: Fila[] = [
+  { label: "Centro de ayuda", icon: HelpCircle, to: "/proximamente/ayuda" },
+  { label: "Contáctanos", icon: MessageCircle, to: "/proximamente/contacto" },
+  { label: "Términos y privacidad", icon: FileText, to: "/proximamente/terminos" },
+];
 
 export function Club() {
   const navigate = useNavigate();
 
-  const entries: Entry[] = [
-    { label: "Mi cashback", desc: `${formatMXN(cuenta.cashbackDisponible)} disponibles`, icon: PercentCircle, tint: "bg-success-100 text-success-600", to: "/cashback" },
-    { label: "Mis compras", desc: "Historial, pedidos y cashback generado", icon: ShoppingBag, tint: "bg-info-100 text-info-700", to: "/compras" },
-    { label: "Crédito Kelder", desc: `Tu crédito personal · saldo ${formatMXN(creditoKelder.saldoPendiente)}`, icon: CreditCard, tint: "bg-kelder-50 text-kelder-600", to: "/credito" },
-    { label: "CrediVales", desc: `${credivalesEnPago.length} en pago · ${credivalesDisponibles.length} disponibles`, icon: Ticket, tint: "bg-ink-100 text-ink-700", to: "/vales" },
-    { label: "Beneficios", desc: "Promociones y experiencias del grupo", icon: Gift, tint: "bg-warning-100 text-warning-600", soon: true },
-    { label: "Cupones y recompensas", desc: "Tus cupones canjeables", icon: BadgePercent, tint: "bg-success-100 text-success-600", soon: true },
-    { label: "Perfil y configuración", desc: "Tus datos y preferencias", icon: Settings, tint: "bg-ink-100 text-ink-600", to: "/perfil" },
-  ];
-
   return (
-    <div>
-      <TopBar title="Mi Club" subtitle={`Hola, ${user.nombre}. Aquí gestionas tu cuenta y tus beneficios.`} />
+    <div className="mx-auto max-w-2xl">
+      {/* Header — compact */}
+      <header>
+        <h1 className="text-2xl font-semibold tracking-tight text-ink-900 sm:text-3xl">Mi Club</h1>
+        <p className="mt-1 text-[15px] text-ink-600">
+          Hola, <span className="font-medium text-ink-900">{user.nombre}</span>
+        </p>
+        <p className="text-sm text-ink-500">Administra tu cuenta, compras y beneficios.</p>
+      </header>
 
-      {/* Cashback highlight — quick access to the primary benefit */}
-      <button
-        onClick={() => navigate("/cashback")}
-        className="mb-6 flex w-full items-center gap-4 rounded-2xl border border-ink-100 bg-white p-5 text-left shadow-soft transition-shadow hover:shadow-card"
-      >
-        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-success-100 text-success-600" aria-hidden="true">
-          <PercentCircle size={24} />
-        </span>
-        <div className="min-w-0 flex-1">
-          <p className="text-sm text-ink-500">Cashback disponible</p>
-          <p className="text-2xl font-semibold tracking-tight text-ink-900">{formatMXN(cuenta.cashbackDisponible)}</p>
-        </div>
-        <span className="inline-flex shrink-0 items-center gap-1 text-sm font-semibold text-kelder-600">
-          Ver movimientos
-          <ArrowRight size={15} aria-hidden="true" />
-        </span>
-      </button>
-
-      {/* Entradas de la cuenta */}
-      <div className="grid gap-3 sm:grid-cols-2">
-        {entries.map((e) => {
-          const Icon = e.icon;
-          const inner = (
-            <>
-              <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${e.tint}`} aria-hidden="true">
+      {/* Accesos principales — grid 2x2 */}
+      <div className="mt-5 grid grid-cols-2 gap-3">
+        {accesos.map((a) => {
+          const Icon = a.icon;
+          return (
+            <button
+              key={a.label}
+              onClick={() => navigate(a.to)}
+              className="flex flex-col gap-3 rounded-2xl border border-ink-100 bg-white p-4 text-left shadow-soft transition-shadow hover:shadow-card"
+            >
+              <span className={`flex h-11 w-11 items-center justify-center rounded-xl ${a.tint}`} aria-hidden="true">
                 <Icon size={20} />
               </span>
-              <div className="min-w-0 flex-1">
-                <p className="flex items-center gap-2 font-medium text-ink-900">
-                  {e.label}
-                  {e.soon && (
-                    <span className="rounded-full bg-ink-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-ink-500">Pronto</span>
-                  )}
-                </p>
-                <p className="truncate text-sm text-ink-500">{e.desc}</p>
+              <div>
+                <p className="text-[15px] font-semibold text-ink-900">{a.label}</p>
+                <p className="text-xs text-ink-500">{a.desc}</p>
               </div>
-              {!e.soon && <ChevronRight size={18} className="shrink-0 text-ink-400" aria-hidden="true" />}
-            </>
-          );
-          return e.soon ? (
-            <div key={e.label} className="flex items-center gap-3 rounded-2xl border border-ink-100 bg-white p-4 opacity-70">
-              {inner}
-            </div>
-          ) : (
-            <button
-              key={e.label}
-              onClick={() => e.to && navigate(e.to)}
-              className="flex items-center gap-3 rounded-2xl border border-ink-100 bg-white p-4 text-left transition-shadow hover:shadow-soft"
-            >
-              {inner}
             </button>
           );
         })}
       </div>
+
+      {/* Mi cuenta — list */}
+      <p className="mb-2 mt-7 px-1 text-xs font-semibold uppercase tracking-[0.14em] text-ink-400">Mi cuenta</p>
+      <div className="divide-y divide-ink-100 overflow-hidden rounded-2xl border border-ink-100 bg-white">
+        {cuenta.map((f) => {
+          const Icon = f.icon;
+          return (
+            <button
+              key={f.label}
+              onClick={() => navigate(f.to)}
+              className="flex w-full items-center gap-3 px-4 py-3.5 text-left transition-colors hover:bg-ink-50"
+            >
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-ink-50 text-ink-600" aria-hidden="true">
+                <Icon size={18} />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="text-[15px] font-medium text-ink-900">{f.label}</p>
+                {f.desc && <p className="truncate text-sm text-ink-500">{f.desc}</p>}
+              </div>
+              <ChevronRight size={18} className="shrink-0 text-ink-400" aria-hidden="true" />
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Ayuda — list */}
+      <p className="mb-2 mt-7 px-1 text-xs font-semibold uppercase tracking-[0.14em] text-ink-400">Ayuda</p>
+      <div className="divide-y divide-ink-100 overflow-hidden rounded-2xl border border-ink-100 bg-white">
+        {ayuda.map((f) => {
+          const Icon = f.icon;
+          return (
+            <button
+              key={f.label}
+              onClick={() => navigate(f.to)}
+              className="flex w-full items-center gap-3 px-4 py-3.5 text-left transition-colors hover:bg-ink-50"
+            >
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-ink-50 text-ink-600" aria-hidden="true">
+                <Icon size={18} />
+              </span>
+              <p className="min-w-0 flex-1 text-[15px] font-medium text-ink-900">{f.label}</p>
+              <ChevronRight size={18} className="shrink-0 text-ink-400" aria-hidden="true" />
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Cerrar sesión — visible but low-key */}
+      <button className="mx-auto mt-7 flex min-h-[44px] items-center justify-center gap-2 text-sm font-medium text-ink-500 hover:text-kelder-600">
+        <LogOut size={17} aria-hidden="true" />
+        Cerrar sesión
+      </button>
     </div>
   );
 }
