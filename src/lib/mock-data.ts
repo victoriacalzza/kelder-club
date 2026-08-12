@@ -58,7 +58,7 @@ export interface Vale {
 }
 
 export type CompraCanal = "tienda" | "linea";
-export type CompraEstado = "En preparación" | "En camino" | "Entregado";
+export type CompraEstado = "En preparación" | "En camino" | "Lista para recoger" | "Entregado" | "Cancelada";
 
 // A purchase groups one OR MORE line items under a single ticket/order.
 export interface CompraItem {
@@ -635,13 +635,44 @@ export const compras: Compra[] = [
     cashback: 30,
     items: [{ marca: "On", modelo: "Cloud 5", imagen: prodOn, talla: 26, cantidad: 1, precioUnitario: 600 }],
   },
+  {
+    id: "c5",
+    tienda: "Kelder.com",
+    canal: "linea",
+    estado: "En preparación",
+    fecha: "08 ago 2026",
+    ticket: "#A-101540",
+    cashback: 60,
+    items: [{ marca: "Nike", modelo: "Court Vision", imagen: prodPuma, talla: 27, cantidad: 1, precioUnitario: 1799 }],
+  },
+  {
+    id: "c6",
+    tienda: "Calzzapato Galerías Mazatlán",
+    canal: "linea",
+    estado: "Lista para recoger",
+    fecha: "10 ago 2026",
+    ticket: "#A-101602",
+    cashback: 75,
+    items: [{ marca: "Adidas", modelo: "Ultraboost Light", imagen: pedidoAdidas, talla: 26, cantidad: 1, precioUnitario: 2899 }],
+  },
+  {
+    id: "c7",
+    tienda: "Kelder.com",
+    canal: "linea",
+    estado: "Cancelada",
+    fecha: "02 jul 2026",
+    ticket: "#A-099210",
+    cashback: 0,
+    items: [{ marca: "Asics", modelo: "Gel-1130", imagen: prodAsics, talla: 28, cantidad: 1, precioUnitario: 2199 }],
+  },
 ];
 
-// Compact summary for the Mis compras header. Generado = sum of purchase cashback.
+// Compact summary for the Mis compras header. Generado = sum of purchase cashback; realizadas
+// excludes cancelled orders.
 export const resumenCompras = {
   cashbackDisponible: 245,
   cashbackGenerado: compras.reduce((s, c) => s + c.cashback, 0),
-  comprasRealizadas: compras.length,
+  comprasRealizadas: compras.filter((c) => c.estado !== "Cancelada").length,
 };
 
 export const movimientosCashback: MovimientoCashback[] = [

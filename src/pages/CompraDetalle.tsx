@@ -38,7 +38,7 @@ export function CompraDetalle({ compra: compraProp }: { compra?: Compra }) {
             </span>
           )}
         </div>
-        {compra.canal === "linea" && compra.estado !== "Entregado" && (
+        {(compra.estado === "En preparación" || compra.estado === "En camino") && (
           <button className="mt-3 inline-flex min-h-[44px] items-center gap-1 text-sm font-semibold text-kelder-600">
             Seguir pedido
             <ArrowRight size={15} aria-hidden="true" />
