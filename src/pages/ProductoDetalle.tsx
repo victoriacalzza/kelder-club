@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { MapPin, Clock, ArrowUpRight, Heart, ListPlus, Check, Store } from "lucide-react";
+import { MapPin, Clock, ArrowUpRight, Heart, ListPlus, Check, Store, Package, ChevronDown } from "lucide-react";
 import { BackButton } from "@/components/layout/BackButton";
 import { Button } from "@/components/ui/Button";
 import {
@@ -11,9 +11,11 @@ import {
   precioConCashback,
   disponibilidadDeProducto,
   tiendaDeProductoCercana,
+  availabilityForStore,
   type Producto,
 } from "@/lib/mock-data";
 import { useClub } from "@/lib/ClubContext";
+import { useTiendaContexto } from "@/lib/useTiendaContexto";
 import { track } from "@/lib/analytics";
 
 export function ProductoDetalle({ producto: prodProp }: { producto?: Producto }) {
@@ -32,6 +34,9 @@ export function ProductoDetalle({ producto: prodProp }: { producto?: Producto })
   const disponibilidad = disponibilidadDeProducto(producto);
   const cercana = tiendaDeProductoCercana(producto);
   const tallas = producto.tallas?.map(String) ?? producto.tallasRopa ?? null;
+  const { tienda: miTienda } = useTiendaContexto();
+  const av = miTienda ? availabilityForStore(producto, miTienda.id) : "extended_catalog";
+  const [otras, setOtras] = useState(false);
 
   useEffect(() => {
     track("product_view", { producto: producto.id });
@@ -66,6 +71,39 @@ export function ProductoDetalle({ producto: prodProp }: { producto?: Producto })
           <h1 className="text-3xl font-semibold tracking-tight text-ink-900">{producto.modelo}</h1>
           <p className="mt-2 text-2xl font-semibold text-ink-900">{formatMXN(producto.precio)}</p>
           <p className="mt-0.5 text-sm font-semibold text-kelder-600">Generas {formatMXN(cashbackGen)} de cashback</p>
+
+          {/* availability relative to the SELECTED store — the transversal signal */}
+          {miTienda && (
+            <div
+              className={`mt-4 flex items-start gap-2.5 rounded-2xl border p-3.5 ${
+                av === "in_store"
+                  ? "border-success-100 bg-success-50"
+                  : av === "low_stock"
+                    ? "border-warning-100 bg-warning-50"
+                    : "border-ink-100 bg-ink-50"
+              }`}
+            >
+              <span className="mt-0.5 shrink-0" aria-hidden="true">
+                {av === "extended_catalog" || av === "unavailable" ? (
+                  <Package size={18} className="text-ink-500" />
+                ) : (
+                  <MapPin size={18} className={av === "low_stock" ? "text-warning-600" : "text-success-700"} />
+                )}
+              </span>
+              <div className="min-w-0">
+                {av === "in_store" && <p className="text-sm font-semibold text-success-700">Disponible en {miTienda.nombre}</p>}
+                {av === "low_stock" && <p className="text-sm font-semibold text-warning-600">Últimas piezas en {miTienda.nombre}</p>}
+                {av === "extended_catalog" && (
+                  <>
+                    <p className="text-sm font-semibold text-ink-900">Catálogo extendido</p>
+                    <p className="text-sm text-ink-500">Puedes solicitarlo en {miTienda.nombre}. Pronto: pídelo y recógelo en tienda.</p>
+                  </>
+                )}
+                {av === "unavailable" && <p className="text-sm font-semibold text-ink-600">No disponible en {miTienda.nombre} por ahora</p>}
+                {(av === "in_store" || av === "low_stock") && <p className="text-sm text-ink-500">A {miTienda.distancia} de ti</p>}
+              </div>
+            </div>
+          )}
 
           {/* cashback purchasing power — a simulation, clearly labeled */}
           <div className="mt-4 rounded-2xl border border-ink-100 bg-white p-4">
@@ -105,10 +143,20 @@ export function ProductoDetalle({ producto: prodProp }: { producto?: Producto })
             </div>
           )}
 
-          {/* availability by store */}
+          {/* availability across other stores — on demand, so the selected-store signal leads */}
           <div ref={dispRef} className="mt-6 scroll-mt-20">
-            <p className="mb-2 text-sm font-medium text-ink-900">Disponible en {disponibilidad.length} {disponibilidad.length === 1 ? "tienda" : "tiendas"}</p>
-            <div className="divide-y divide-ink-100 rounded-2xl border border-ink-100 bg-white">
+            <button
+              onClick={() => setOtras((o) => !o)}
+              aria-expanded={otras}
+              className="mb-2 flex w-full items-center justify-between gap-2 text-left text-sm font-medium text-ink-900"
+            >
+              Ver disponibilidad en otras tiendas
+              <span className="inline-flex items-center gap-1 text-xs font-normal text-ink-500">
+                {disponibilidad.length} {disponibilidad.length === 1 ? "tienda" : "tiendas"}
+                <ChevronDown size={16} className={`transition-transform ${otras ? "rotate-180" : ""}`} aria-hidden="true" />
+              </span>
+            </button>
+            <div className={`divide-y divide-ink-100 rounded-2xl border border-ink-100 bg-white ${otras ? "" : "hidden"}`}>
               {disponibilidad.map(({ tienda, estado }, i) => (
                 <div key={tienda.id} className="flex items-center gap-3 px-4 py-3">
                   <MapPin size={18} className="shrink-0 text-kelder-600" aria-hidden="true" />
@@ -153,6 +201,7 @@ export function ProductoDetalle({ producto: prodProp }: { producto?: Producto })
               icon={<Store size={18} aria-hidden="true" />}
               onClick={() => {
                 track("store_availability_view", { producto: producto.id });
+                setOtras(true);
                 dispRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
               }}
             >

@@ -1,5 +1,6 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import { Search, Bell } from "lucide-react";
+import { StoreSwitcher } from "@/components/layout/StoreSwitcher";
 import { user } from "@/lib/mock-data";
 import logoKelderClub from "../../assets/logos/kelder-club.png";
 
@@ -67,6 +68,13 @@ export function TopNav() {
               {user.nombre.slice(0, 2).toUpperCase()}
             </span>
           </NavLink>
+        </div>
+      </div>
+
+      {/* Selected store — transversal context. Slim row so the header stays short. */}
+      <div className="border-t border-ink-100/70">
+        <div className="mx-auto flex h-9 max-w-6xl items-center px-5 sm:px-8">
+          <StoreSwitcher compact />
         </div>
       </div>
     </header>

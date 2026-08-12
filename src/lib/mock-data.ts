@@ -820,3 +820,41 @@ export function promoPorId(id?: string): Promocion | undefined {
 
 // Home "Promociones vigentes" count → feeds the discreet badge in Mi Club.
 export const promocionesActivas = promociones.length;
+
+// ─────────────────────────── Disponibilidad por tienda seleccionada ───────────────────────────
+// The selected store is transversal: product surfaces show availability RELATIVE to it.
+// Availability is a small enum so the UI never depends on exact stock numbers; swap the mock
+// resolver for real inventory later without touching components.
+export type ProductAvailability = "in_store" | "low_stock" | "extended_catalog" | "unavailable";
+
+/** Availability of a product AT a given store (deterministic mock from its store list). */
+export function availabilityForStore(p: Producto, storeId: string): ProductAvailability {
+  if (p.disponible === false) return "unavailable";
+  const hit = disponibilidadDeProducto(p).find((d) => d.tienda.id === storeId);
+  if (hit) return hit.estado === "Últimas piezas" ? "low_stock" : "in_store";
+  return "extended_catalog"; // not physically here → orderable via extended catalog
+}
+
+/** Compact label + tone for an availability state (store-scoped). */
+export function availabilityLabel(a: ProductAvailability): { label: string; tone: "ok" | "low" | "muted" } {
+  if (a === "in_store") return { label: "Disponible en tu tienda", tone: "ok" };
+  if (a === "low_stock") return { label: "Últimas piezas", tone: "low" };
+  if (a === "extended_catalog") return { label: "Catálogo extendido", tone: "muted" };
+  return { label: "No disponible", tone: "muted" };
+}
+
+/** Products physically available in a store (in_store or low_stock), nearest-store subset. */
+export function inventarioDeTienda(storeId: string): Producto[] {
+  return productosDeTienda(storeId);
+}
+
+/** Extended-catalog products for a store: orderable, not physically there ("pide y recoge"). */
+export function catalogoExtendidoDeTienda(storeId: string): Producto[] {
+  const enTienda = new Set(productosDeTienda(storeId).map((p) => p.id));
+  return catalogo.filter((p) => p.disponible !== false && !enTienda.has(p.id));
+}
+
+/** Store's in-stock products a member could buy fully/partially with their cashback (cheapest first). */
+export function cashbackEligibleEnTienda(storeId: string): Producto[] {
+  return productosDeTienda(storeId).slice().sort((a, b) => a.precio - b.precio);
+}

@@ -14,10 +14,12 @@ import { track } from "@/lib/analytics";
 interface ProductPeekCardProps {
   producto: Producto;
   onClick?: () => void;
-  disponibilidadLabel?: string; // e.g. "Disponible en esta tienda", "Últimas piezas"
-  disponibilidadTono?: "ok" | "low";
+  disponibilidadLabel?: string; // e.g. "Disponible en tu tienda", "Últimas piezas", "Catálogo extendido"
+  disponibilidadTono?: "ok" | "low" | "muted";
   poderCompraCashback?: number; // available cashback → shows "Con tu cashback pagarías $X"
 }
+
+const tonoClass = { ok: "text-success-700", low: "text-warning-600", muted: "text-ink-500" } as const;
 
 export function ProductPeekCard({ producto, onClick, disponibilidadLabel, disponibilidadTono = "ok", poderCompraCashback }: ProductPeekCardProps) {
   const { esFavorito, toggleFavorito } = useClub();
@@ -58,10 +60,13 @@ export function ProductPeekCard({ producto, onClick, disponibilidadLabel, dispon
         <p className="truncate text-[14px] font-medium text-ink-900">{producto.modelo}</p>
         <p className="mt-0.5 text-[15px] font-semibold text-ink-900">{formatMXN(producto.precio)}</p>
         {conCashback !== null && (
-          <p className="mt-0.5 text-xs font-medium text-kelder-600">Con tu cashback: {formatMXN(conCashback)}</p>
+          <p className="mt-0.5 text-xs font-medium text-kelder-600">
+            {conCashback === 0 ? "✓ Te alcanza con tu cashback" : `Con tu cashback pagarías ${formatMXN(conCashback)}`}
+          </p>
         )}
         {disponibilidadLabel && (
-          <p className={`mt-1 text-xs font-medium ${disponibilidadTono === "low" ? "text-warning-600" : "text-success-700"}`}>
+          <p className={`mt-1 inline-flex items-center gap-1 text-xs font-medium ${tonoClass[disponibilidadTono]}`}>
+            {disponibilidadTono !== "muted" && <span className={`h-1.5 w-1.5 rounded-full ${disponibilidadTono === "low" ? "bg-warning-600" : "bg-success-600"}`} aria-hidden="true" />}
             {disponibilidadLabel}
           </p>
         )}

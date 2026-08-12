@@ -1,66 +1,76 @@
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Search } from "lucide-react";
+import { Search, Package, MapPin } from "lucide-react";
 import { TopBar } from "@/components/layout/TopBar";
 import { BackButton } from "@/components/layout/BackButton";
 import { ProductPeekCard } from "@/components/ui/ProductPeekCard";
 import { useTiendaContexto } from "@/lib/useTiendaContexto";
-import { catalogo, cuenta, tiposProducto, disponibilidadDeProducto, formatMXN, type TipoProducto } from "@/lib/mock-data";
+import {
+  catalogo,
+  cuenta,
+  tiposProducto,
+  catalogoExtendidoDeTienda,
+  cashbackEligibleEnTienda,
+  availabilityForStore,
+  availabilityLabel,
+  formatMXN,
+  type TipoProducto,
+  type Producto,
+} from "@/lib/mock-data";
 import { track } from "@/lib/analytics";
 
-type Chip = TipoProducto | "Cerca de mí" | "Todo";
-const chips: Chip[] = ["Todo", "Cerca de mí", ...tiposProducto];
+type Chip = TipoProducto | "Todo";
+const chips: Chip[] = ["Todo", ...tiposProducto];
 
 /**
- * Catálogo extendido — discovery of products available in physical stores (may differ from
- * ecommerce). Logic is PRODUCTO → DISPONIBILIDAD → TIENDA → VISITA; the card CTA is the product
- * detail (availability), never "Comprar". "Cerca de mí" ranks by the closest store that stocks it.
- *
- * `?contexto=cashback` turns it into cashback-driven discovery ("qué puedo comprar con mis $245"):
- * it defaults to the nearby ranking, communicates the balance, and shows each product's cashback
- * purchasing power — prioritizing what's available in the member's nearest/preferred store.
+ * Catálogo extendido — discovery scoped to the selected store. Three modes via query params:
+ *   ?contexto=cashback → "qué puedo comprar" with your cashback, in-store items first (visit intent)
+ *   ?modo=extendido    → products orderable at your store but not physically there (future pick-up)
+ *   (default)          → full catalog, each item tagged with availability at your store
+ * The card CTA is always the product detail — never "Comprar". PRODUCTO → DISPONIBILIDAD → TIENDA.
  */
 export function Catalogo() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const cashbackMode = params.get("contexto") === "cashback";
+  const extendidoMode = params.get("modo") === "extendido";
   const { tienda } = useTiendaContexto();
-  const [chip, setChip] = useState<Chip>(cashbackMode ? "Cerca de mí" : "Todo");
+  const storeId = tienda?.id ?? "t1";
+  const [chip, setChip] = useState<Chip>("Todo");
 
-  let lista = catalogo.filter((p) => p.disponible !== false);
-  if (chip !== "Todo" && chip !== "Cerca de mí") lista = lista.filter((p) => p.tipo === chip);
-  if (chip === "Cerca de mí") {
-    lista = [...lista].sort((a, b) => {
-      const da = disponibilidadDeProducto(a)[0]?.tienda.distanciaKm ?? 99;
-      const db = disponibilidadDeProducto(b)[0]?.tienda.distanciaKm ?? 99;
-      return da - db;
-    });
-  }
+  let lista: Producto[];
+  if (cashbackMode) lista = cashbackEligibleEnTienda(storeId);
+  else if (extendidoMode) lista = catalogoExtendidoDeTienda(storeId);
+  else lista = catalogo.filter((p) => p.disponible !== false);
+  if (chip !== "Todo") lista = lista.filter((p) => p.tipo === chip);
+
+  const title = cashbackMode ? "Qué puedo comprar" : extendidoMode ? "Catálogo extendido" : "Catálogo";
+  const subtitle = cashbackMode
+    ? `Con tus ${formatMXN(cuenta.cashbackDisponible)} de cashback, esto puedes comprar o complementar en tu tienda.`
+    : extendidoMode
+      ? "Productos que puedes solicitar en tu tienda aunque no estén físicamente ahí."
+      : "Descubre lo que puedes encontrar en tu tienda y en el catálogo del grupo.";
 
   return (
     <div>
       <BackButton />
-      {cashbackMode ? (
-        <TopBar
-          title="Qué puedo comprar"
-          subtitle={`Con tus ${formatMXN(cuenta.cashbackDisponible)} de cashback, esto puedes comprar o complementar cerca de ti.`}
-        />
-      ) : (
-        <TopBar title="Catálogo" subtitle="Descubre lo que puedes encontrar en tiendas cerca de ti." />
+      <TopBar title={title} subtitle={subtitle} />
+
+      {!cashbackMode && !extendidoMode && (
+        <button
+          onClick={() => navigate("/buscar")}
+          className="mb-4 flex w-full items-center gap-2 rounded-2xl border border-ink-200 bg-white px-4 py-3 text-left text-sm text-ink-500"
+        >
+          <Search size={18} aria-hidden="true" />
+          Buscar productos, marcas o categorías
+        </button>
       )}
 
-      {/* jump to full search */}
-      <button
-        onClick={() => navigate("/buscar")}
-        className="mb-4 flex w-full items-center gap-2 rounded-2xl border border-ink-200 bg-white px-4 py-3 text-left text-sm text-ink-500"
-      >
-        <Search size={18} aria-hidden="true" />
-        Buscar productos, marcas o categorías
-      </button>
-
       {tienda && (
-        <p className="mb-3 text-xs text-ink-400">
-          Mostrando disponibilidad cerca de <span className="font-medium text-ink-600">{tienda.nombre}</span>
+        <p className="mb-3 inline-flex items-center gap-1.5 text-xs text-ink-400">
+          {extendidoMode ? <Package size={13} aria-hidden="true" /> : <MapPin size={13} aria-hidden="true" />}
+          {cashbackMode ? "En " : extendidoMode ? "Solicitar en " : "Disponibilidad en "}
+          <span className="font-medium text-ink-600">{tienda.nombre}</span>
         </p>
       )}
 
@@ -82,7 +92,8 @@ export function Catalogo() {
       {/* product grid */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
         {lista.map((p) => {
-          const disp = disponibilidadDeProducto(p);
+          const av = extendidoMode ? "extended_catalog" : availabilityForStore(p, storeId);
+          const { label, tone } = availabilityLabel(av);
           return (
             <ProductPeekCard
               key={p.id}
@@ -92,7 +103,8 @@ export function Catalogo() {
                 navigate(`/producto/${p.id}`);
               }}
               poderCompraCashback={cashbackMode ? cuenta.cashbackDisponible : undefined}
-              disponibilidadLabel={`Disponible en ${disp.length} ${disp.length === 1 ? "tienda" : "tiendas"}`}
+              disponibilidadLabel={label}
+              disponibilidadTono={tone}
             />
           );
         })}

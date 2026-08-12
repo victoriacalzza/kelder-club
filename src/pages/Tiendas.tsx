@@ -1,136 +1,148 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, MapPin, Clock, ArrowUpRight } from "lucide-react";
+import { Search, MapPin, ArrowUpRight, ArrowRight, ChevronRight, Repeat, Package, Tag } from "lucide-react";
 import { TopBar } from "@/components/layout/TopBar";
-import { StorePreview } from "@/components/ui/StorePreview";
-import { sucursales, tiendaCercana, unidadesNegocio, logoDeUnidad, comercialDeTienda, type UnidadNegocio, type Tienda } from "@/lib/mock-data";
+import { StoreSelectorSheet } from "@/components/layout/StoreSelectorSheet";
+import { sucursales, tiendaCercana, comercialDeTienda } from "@/lib/mock-data";
+import { useTiendaContexto } from "@/lib/useTiendaContexto";
 import { track } from "@/lib/analytics";
 
+// "9:00 – 21:00" → "9:00 PM"
+function cierre12h(horario: string): string | null {
+  const end = horario.split("–").pop()?.trim();
+  const m = end?.match(/^(\d{1,2}):(\d{2})$/);
+  if (!m) return null;
+  const h = Number(m[1]);
+  return `${h % 12 === 0 ? 12 : h % 12}:${m[2]} ${h >= 12 ? "PM" : "AM"}`;
+}
+
+/**
+ * Tiendas — a tool to visit and explore stores, not a map. The selected store ("Mi tienda") is
+ * already permanent context in the header, so here it's a COMPACT block (no giant storefront
+ * photo): status + distance + actions, then in-store search and quick access to products/promos.
+ * Below, "Tiendas cerca de ti" is a lean list of the other branches by distance.
+ */
 export function Tiendas() {
   const navigate = useNavigate();
-  const [query, setQuery] = useState("");
-  const [unidad, setUnidad] = useState<UnidadNegocio | "todas">("todas");
+  const { tienda: miTienda } = useTiendaContexto();
+  const seleccionada = miTienda ?? tiendaCercana;
+  const [cambiar, setCambiar] = useState(false);
 
-  const ql = query.trim().toLowerCase();
-  const filtradas = sucursales
-    .filter((t) => unidad === "todas" || t.unidad === unidad)
-    .filter((t) => ql === "" || `${t.nombre} ${t.ciudad} ${t.unidad}`.toLowerCase().includes(ql))
-    .sort((a, b) => a.distanciaKm - b.distanciaKm);
-
-  const cercana = filtradas[0] ?? tiendaCercana;
-  const otras = filtradas.filter((t) => t.id !== cercana.id);
+  const { promociones: nPromos, novedades: nNovedades } = comercialDeTienda(seleccionada.id);
+  const cierre = cierre12h(seleccionada.horario);
+  const otras = sucursales.filter((t) => t.id !== seleccionada.id).sort((a, b) => a.distanciaKm - b.distanciaKm);
 
   return (
     <div>
-      <TopBar title="Encuentra una tienda" subtitle="Tiendas de todo el Grupo Calzzapato." />
+      <TopBar title="Tiendas" />
 
-      {/* search */}
-      <label className="relative block">
-        <span className="sr-only">Buscar tienda</span>
-        <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-ink-400" aria-hidden="true" />
-        <input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Buscar por ciudad, plaza o tienda..."
-          className="h-12 w-full rounded-2xl border border-ink-200 bg-white pl-11 pr-4 text-base"
-        />
-      </label>
+      {/* MI TIENDA — compact, no photo (identity already lives in the header) */}
+      <p className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-ink-500">Mi tienda</p>
+      <div className="rounded-2xl border border-ink-100 bg-white p-5 shadow-soft">
+        <p className="flex items-start gap-2 text-lg font-semibold text-ink-900">
+          <MapPin size={20} className="mt-0.5 shrink-0 text-kelder-600" aria-hidden="true" />
+          {seleccionada.nombre}
+        </p>
+        <p className="mt-1.5 inline-flex items-center gap-1.5 text-sm">
+          <span className={`h-2 w-2 rounded-full ${seleccionada.abierta ? "bg-success-600" : "bg-ink-300"}`} aria-hidden="true" />
+          <span className={seleccionada.abierta ? "font-medium text-success-700" : "font-medium text-ink-500"}>
+            {seleccionada.abierta ? "Abierta" : "Cerrada"}
+          </span>
+          {cierre && <span className="text-ink-500">· hasta {cierre}</span>}
+        </p>
+        <p className="mt-0.5 text-sm text-ink-500">{seleccionada.distancia}</p>
 
-      {/* business-unit filters */}
-      <div className="mt-4 flex flex-wrap gap-2">
-        <FiltroChip label="Todas" activo={unidad === "todas"} onClick={() => setUnidad("todas")} />
-        {unidadesNegocio.map((u) => (
-          <FiltroChip key={u.nombre} label={u.nombre} activo={unidad === u.nombre} onClick={() => setUnidad(u.nombre)} />
+        <div className="mt-4 flex flex-wrap gap-2.5">
+          <button
+            onClick={() => track("directions_click", { tienda: seleccionada.id })}
+            className="inline-flex min-h-[44px] items-center gap-1.5 rounded-full bg-kelder-600 px-5 text-sm font-semibold text-white"
+          >
+            Cómo llegar
+            <ArrowUpRight size={15} aria-hidden="true" />
+          </button>
+          <button
+            onClick={() => setCambiar(true)}
+            className="inline-flex min-h-[44px] items-center gap-1.5 rounded-full border border-ink-200 px-5 text-sm font-semibold text-ink-700 hover:bg-ink-50"
+          >
+            <Repeat size={15} aria-hidden="true" />
+            Cambiar tienda
+          </button>
+        </div>
+      </div>
+
+      {/* Search in this store */}
+      <p className="mb-2 mt-6 text-sm font-medium text-ink-900">Buscar en esta tienda</p>
+      <button
+        onClick={() => navigate("/buscar")}
+        className="flex w-full items-center gap-2 rounded-2xl border border-ink-200 bg-white px-4 py-3 text-left text-sm text-ink-500"
+      >
+        <Search size={18} aria-hidden="true" />
+        Buscar productos...
+      </button>
+
+      {/* Quick access — products & promotions of this store */}
+      <div className="mt-3 grid grid-cols-2 gap-3">
+        <button
+          onClick={() => navigate(`/tienda/${seleccionada.id}`)}
+          className="flex items-center gap-2.5 rounded-2xl border border-ink-100 bg-white px-4 py-3 text-left shadow-soft"
+        >
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-info-100 text-info-700" aria-hidden="true">
+            <Package size={17} />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-sm font-semibold text-ink-900">Productos disponibles</span>
+            <span className="block text-xs text-ink-500">{nNovedades} novedades</span>
+          </span>
+          <ArrowRight size={15} className="shrink-0 text-ink-400" aria-hidden="true" />
+        </button>
+        <button
+          onClick={() => navigate("/promociones")}
+          className="flex items-center gap-2.5 rounded-2xl border border-ink-100 bg-white px-4 py-3 text-left shadow-soft"
+        >
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-kelder-50 text-kelder-600" aria-hidden="true">
+            <Tag size={17} />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-sm font-semibold text-ink-900">Promociones</span>
+            <span className="block text-xs text-ink-500">{nPromos} activas</span>
+          </span>
+          <ArrowRight size={15} className="shrink-0 text-ink-400" aria-hidden="true" />
+        </button>
+      </div>
+
+      {/* Otras tiendas cerca de ti — lean list */}
+      <p className="mb-2 mt-8 text-xs font-semibold uppercase tracking-[0.16em] text-ink-500">Tiendas cerca de ti</p>
+      <div className="divide-y divide-ink-100 overflow-hidden rounded-2xl border border-ink-100 bg-white">
+        {otras.map((t) => (
+          <button
+            key={t.id}
+            onClick={() => {
+              track("store_view", { tienda: t.id, origen: "tiendas" });
+              navigate(`/tienda/${t.id}`);
+            }}
+            className="flex w-full items-center gap-3 px-4 py-3.5 text-left transition-colors hover:bg-ink-50"
+          >
+            <MapPin size={18} className="shrink-0 text-ink-400" aria-hidden="true" />
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-[15px] font-medium text-ink-900">{t.nombre}</span>
+              <span className="block text-sm text-ink-500">
+                {t.distancia} ·{" "}
+                <span className={t.abierta ? "font-medium text-success-700" : "text-ink-500"}>{t.abierta ? "Abierta" : "Cerrada"}</span>
+              </span>
+            </span>
+            <ChevronRight size={18} className="shrink-0 text-ink-400" aria-hidden="true" />
+          </button>
         ))}
       </div>
 
-      {/* nearest */}
-      <div className="mt-6">
-        <StorePreview
-          tienda={cercana}
-          onExplorar={() => {
-            track("store_view", { tienda: cercana.id, origen: "tiendas" });
-            navigate(`/tienda/${cercana.id}`);
-          }}
-          onDirections={() => track("directions_click", { tienda: cercana.id })}
-          onVerTodas={() => navigate(`/tienda/${cercana.id}`)}
-        />
-      </div>
+      <button
+        onClick={() => setCambiar(true)}
+        className="mx-auto mt-4 flex min-h-[44px] items-center justify-center text-sm font-semibold text-kelder-600"
+      >
+        Ver todas las tiendas
+      </button>
 
-      {/* other branches, by proximity */}
-      {otras.length > 0 && (
-        <>
-          <h2 className="mb-3 mt-8 text-sm font-medium text-ink-500">Más sucursales</h2>
-          <div className="grid gap-4 sm:grid-cols-2">
-            {otras.map((t) => (
-              <SucursalCard key={t.id} tienda={t} onExplorar={() => navigate(`/tienda/${t.id}`)} />
-            ))}
-          </div>
-        </>
-      )}
-
-      {filtradas.length === 0 && (
-        <p className="mt-8 text-center text-sm text-ink-500">
-          No encontramos sucursales para «{query}». Prueba con otra ciudad o unidad de negocio.
-        </p>
-      )}
-    </div>
-  );
-}
-
-function FiltroChip({ label, activo, onClick }: { label: string; activo: boolean; onClick: () => void }) {
-  return (
-    <button
-      onClick={onClick}
-      className={`min-h-[40px] rounded-full border px-4 text-sm font-medium transition-colors ${
-        activo ? "border-kelder-600 bg-kelder-600 text-white" : "border-ink-200 text-ink-700 hover:bg-ink-50"
-      }`}
-    >
-      {label}
-    </button>
-  );
-}
-
-function SucursalCard({ tienda, onExplorar }: { tienda: Tienda; onExplorar?: () => void }) {
-  const { promociones, novedades } = comercialDeTienda(tienda.id);
-  return (
-    <div className="overflow-hidden rounded-2xl border border-ink-100 bg-white">
-      {/* brand image — real photo if present, else this unit's own logo (never a mismatched brand) */}
-      <div className="h-28 w-full overflow-hidden">
-        {tienda.imagen ? (
-          <img src={tienda.imagen} alt={`Tienda ${tienda.nombre}`} className="h-full w-full object-cover" />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center bg-ink-950 px-6" aria-hidden="true">
-            <img src={logoDeUnidad(tienda.unidad)} alt="" className="max-h-8 w-auto max-w-[60%] object-contain" style={{ filter: "brightness(0) invert(1)" }} />
-          </div>
-        )}
-      </div>
-      <div className="p-5">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <p className="text-xs font-semibold uppercase tracking-wide text-ink-400">{tienda.unidad}</p>
-            <p className="mt-0.5 truncate font-semibold text-ink-900">{tienda.nombre}</p>
-          </div>
-          <MapPin size={18} className="shrink-0 text-kelder-600" aria-hidden="true" />
-        </div>
-        <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-ink-500">
-          <span className="inline-flex items-center gap-1.5">
-            <Clock size={14} aria-hidden="true" />
-            <span className={tienda.abierta ? "font-medium text-success-700" : "font-medium text-ink-500"}>
-              {tienda.abierta ? "Abierta" : "Cerrada"}
-            </span>
-            · {tienda.horario}
-          </span>
-          <span>A {tienda.distancia}</span>
-        </div>
-        <p className="mt-2 text-xs text-ink-400">
-          {promociones} promociones activas · {novedades} novedades
-        </p>
-        <button onClick={onExplorar} className="mt-3 inline-flex min-h-[44px] items-center gap-1 text-sm font-semibold text-kelder-600">
-          Explorar esta tienda
-          <ArrowUpRight size={15} aria-hidden="true" />
-        </button>
-      </div>
+      <StoreSelectorSheet open={cambiar} onClose={() => setCambiar(false)} />
     </div>
   );
 }

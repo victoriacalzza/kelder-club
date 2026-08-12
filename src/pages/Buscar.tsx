@@ -17,11 +17,13 @@ import {
   unidadesNegocio,
   tallasDeTipo,
   tallasDeProducto,
+  availabilityForStore,
   type Producto,
   type Departamento,
   type TipoProducto,
   type UnidadNegocio,
 } from "@/lib/mock-data";
+import { useTiendaContexto } from "@/lib/useTiendaContexto";
 
 type Modo = "texto" | "codigo" | "foto";
 type Orden = "relevancia" | "precio_asc" | "precio_desc" | "recientes";
@@ -118,9 +120,21 @@ export function Buscar({
   const [filtros, setFiltros] = useState<Filtros>({ ...filtrosVacios, ...initialFiltros });
   const [openDrop, setOpenDrop] = useState<string | null>(null);
   const [drawer, setDrawer] = useState(initialDrawer);
+  const [dispFiltro, setDispFiltro] = useState<"todos" | "en_tienda" | "extendido">("todos");
+  const { tienda: miTienda } = useTiendaContexto();
+  const storeId = miTienda?.id ?? "t1";
 
   const base = buscar(query);
-  const resultados = ordenar(aplicaFiltros(base, filtros), orden);
+  const resultadosBase = ordenar(aplicaFiltros(base, filtros), orden);
+  // Availability is relative to the selected store; in-store results are surfaced first.
+  const enTienda = (p: Producto) => {
+    const a = availabilityForStore(p, storeId);
+    return a === "in_store" || a === "low_stock";
+  };
+  const rank = (p: Producto) => (enTienda(p) ? 0 : 1);
+  const resultados = resultadosBase
+    .filter((p) => (dispFiltro === "en_tienda" ? enTienda(p) : dispFiltro === "extendido" ? !enTienda(p) : true))
+    .sort((a, b) => rank(a) - rank(b));
 
   const set = (patch: Partial<Filtros>) => setFiltros((f) => ({ ...f, ...patch }));
   const chips = chipsActivos(filtros, set);
@@ -296,6 +310,25 @@ export function Buscar({
             <span>Ordenar por</span>
             <OrdenSelect orden={orden} setOrden={setOrden} className="h-11" />
           </div>
+        </div>
+
+        {/* Availability quick-filter — prioritizes the selected store */}
+        <div className="-mx-4 mb-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:px-0 [&::-webkit-scrollbar]:hidden">
+          {([
+            { key: "todos", label: "Todos" },
+            { key: "en_tienda", label: miTienda ? `En ${miTienda.nombre}` : "En mi tienda" },
+            { key: "extendido", label: "Catálogo extendido" },
+          ] as const).map((c) => (
+            <button
+              key={c.key}
+              onClick={() => setDispFiltro(c.key)}
+              className={`min-h-[34px] shrink-0 rounded-full border px-3.5 text-sm font-medium transition-colors ${
+                dispFiltro === c.key ? "border-kelder-600 bg-kelder-600 text-white" : "border-ink-200 text-ink-600 hover:bg-ink-50"
+              }`}
+            >
+              {c.label}
+            </button>
+          ))}
         </div>
 
         {/* Results grid / empty */}

@@ -6,6 +6,7 @@ import { OrderInProgress } from "@/components/ui/OrderInProgress";
 import { PromoBanner } from "@/components/ui/PromoBanner";
 import { MarcasMarquee } from "@/components/ui/MarcasMarquee";
 import { StoreContextModule } from "@/components/ui/StoreContextModule";
+import { ExtendedCatalogTeaser } from "@/components/ui/ExtendedCatalogTeaser";
 import { QRModal } from "@/components/modals/QRModal";
 import { RedeemFlow } from "@/components/modals/RedeemFlow";
 import { track } from "@/lib/analytics";
@@ -75,9 +76,14 @@ export function Home({ profile = perfilDemo }: { profile?: ClientProfile }) {
         <StoreContextModule />
       </div>
 
-      {/* 5 · Featured campaign — light, photographic, launch theme */}
+      {/* 5 · Promociones — featured campaign, leads to actionable promotions */}
       <div className="mt-10 lg:mt-12">
         <PromoBanner campania={campaniaDestacada} onClick={() => navigate("/promociones")} />
+      </div>
+
+      {/* 6 · Catálogo extendido — discover what can be requested at your store (future pick-up) */}
+      <div className="mt-12 lg:mt-14">
+        <ExtendedCatalogTeaser />
       </div>
 
       {modal === "qr" && <QRModal onClose={() => setModal(null)} />}
