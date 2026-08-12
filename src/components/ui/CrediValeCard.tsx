@@ -55,7 +55,8 @@ export function CrediValeDisponibleCard({ vale, onClick }: { vale: Vale; onClick
   );
 }
 
-/** EN PAGO — used voucher. Compact card focused on the quincenal payment picture. */
+/** EN PAGO — used voucher. Deliberately SHORT: folio + mayorista, next payment, pending balance,
+ *  progress, "Ver detalle". Everything else (calendar, breakdown) lives in the detail (Level 3). */
 export function CrediValeEnPagoCard({ vale, onClick }: { vale: Vale; onClick?: () => void }) {
   const progreso = vale.pagoActual !== undefined && vale.pagosTotales !== undefined
     ? Math.round(((vale.pagoActual - 1) / vale.pagosTotales) * 100)
@@ -66,31 +67,27 @@ export function CrediValeEnPagoCard({ vale, onClick }: { vale: Vale; onClick?: (
       onClick={onClick}
       className="group flex w-full flex-col rounded-2xl border border-ink-100 bg-white p-5 text-left transition-shadow hover:shadow-soft"
     >
-      <div className="flex items-center justify-between gap-3">
-        <CrediValeLogo />
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="font-mono text-sm text-ink-600">{vale.folio}</p>
+          <p className="mt-0.5 inline-flex items-center gap-1.5 text-[15px] font-semibold text-ink-900">
+            <User size={14} className="text-ink-400" aria-hidden="true" />
+            {vale.mayoristaPersona}
+          </p>
+        </div>
         <StatusPill estado={vale.estado} />
       </div>
-      <p className="mt-3 flex flex-wrap items-center gap-x-2 text-sm text-ink-500">
-        <span className="font-mono text-ink-600">{vale.folio}</span>
-        <span className="text-ink-300" aria-hidden="true">·</span>
-        <span className="inline-flex items-center gap-1.5">
-          <User size={14} className="text-ink-400" aria-hidden="true" />
-          Mayorista <span className="font-medium text-ink-900">{vale.mayoristaPersona}</span>
-        </span>
-      </p>
 
-      <div className="mt-4 grid grid-cols-3 gap-3">
-        <div>
-          <p className="text-xs text-ink-500">Saldo pendiente</p>
-          <p className="mt-0.5 text-lg font-semibold tracking-tight text-ink-900">{formatMXN(vale.saldoPendiente ?? 0)}</p>
-        </div>
-        <div>
-          <p className="text-xs text-ink-500">Pago quincenal</p>
-          <p className="mt-0.5 text-lg font-semibold text-ink-900">{formatMXN(vale.proximoPago?.monto ?? 0)}</p>
-        </div>
+      <div className="mt-4 grid grid-cols-2 gap-4">
         <div>
           <p className="text-xs text-ink-500">Próximo pago</p>
-          <p className="mt-0.5 text-lg font-semibold text-ink-900">{vale.proximoPago?.fecha ?? "—"}</p>
+          <p className="mt-0.5 text-[15px] font-semibold text-ink-900">
+            {formatMXN(vale.proximoPago?.monto ?? 0)} · {vale.proximoPago?.fecha ?? "—"}
+          </p>
+        </div>
+        <div>
+          <p className="text-xs text-ink-500">Saldo pendiente</p>
+          <p className="mt-0.5 text-[15px] font-semibold text-ink-900">{formatMXN(vale.saldoPendiente ?? 0)}</p>
         </div>
       </div>
 
@@ -100,7 +97,7 @@ export function CrediValeEnPagoCard({ vale, onClick }: { vale: Vale; onClick?: (
             <div className="h-full rounded-full bg-kelder-600" style={{ width: `${progreso}%` }} />
           </div>
           <span className="shrink-0 text-xs text-ink-500">
-            Pago {vale.pagoActual} de {vale.pagosTotales}
+            {vale.pagoActual} de {vale.pagosTotales} pagos
           </span>
         </div>
       )}

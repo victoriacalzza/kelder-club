@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { ChevronLeft, ChevronRight, User, CalendarClock, CheckCircle2, Circle, Ticket, Sparkles } from "lucide-react";
+import { ChevronLeft, ChevronRight, User, CircleDot, CheckCircle2, Circle, Ticket, Sparkles } from "lucide-react";
 import { StatusPill } from "@/components/ui/StatusPill";
 import { CrediValeLogo } from "@/components/ui/CrediValeCard";
 import { vales, formatMXN, type Vale } from "@/lib/mock-data";
@@ -166,24 +166,20 @@ function ExtravaleDetalle({ vale }: { vale: Vale }) {
   );
 }
 
-/* ── En pago: used voucher with quincenal payments ── */
+/* ── En pago: used voucher with quincenal payments (simplified, progressive disclosure) ── */
 function EnPagoDetalle({ vale }: { vale: Vale }) {
   const navigate = useNavigate();
   const pagosTotales = vale.pagosTotales ?? 0;
   const realizados = (vale.pagoActual ?? 1) - 1;
-  const progreso = pagosTotales ? Math.round((realizados / pagosTotales) * 100) : 0;
-  const historial = (vale.pagos ?? []).filter((p) => p.estado === "pagado");
 
   return (
     <>
-      {/* Saldo restante → Extravale generado (available money, not a debt) */}
+      {/* High-value first: if there's an Extravale, surface it right after the header (available money) */}
       {vale.extravaleId && vale.extravaleMonto !== undefined && (
-        <div className="mb-4 flex flex-wrap items-center gap-x-4 gap-y-2 rounded-2xl border border-success-100 bg-success-50 p-4">
-          <div className="min-w-0 flex-1">
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-success-600">Saldo restante</p>
-            <p className="mt-0.5 text-sm text-ink-700">
-              Extravale generado <span className="font-semibold text-ink-900">{formatMXN(vale.extravaleMonto)} disponibles</span>
-            </p>
+        <div className="mb-4 flex items-center justify-between gap-4 rounded-2xl border border-success-100 bg-success-50 p-4">
+          <div className="min-w-0">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-success-700">Extravale disponible</p>
+            <p className="mt-0.5 text-2xl font-semibold tracking-tight text-ink-900">{formatMXN(vale.extravaleMonto)}</p>
           </div>
           <button
             onClick={() => navigate(`/vales/${vale.extravaleId}`)}
@@ -195,13 +191,13 @@ function EnPagoDetalle({ vale }: { vale: Vale }) {
         </div>
       )}
 
-      {/* resumen — the four figures the user needs */}
+      {/* Only the figures the user needs: pending, quincenal, next date, and progress */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {[
-          ["Monto utilizado", formatMXN(vale.utilizado)],
           ["Saldo pendiente", formatMXN(vale.saldoPendiente ?? 0)],
           ["Pago quincenal", formatMXN(vale.proximoPago?.monto ?? 0)],
           ["Próximo pago", vale.proximoPago?.fecha ?? "—"],
+          ["Avance", `${realizados} de ${pagosTotales} pagos`],
         ].map(([label, value]) => (
           <div key={label} className="rounded-2xl border border-ink-100 bg-white p-4">
             <p className="text-sm text-ink-500">{label}</p>
@@ -210,40 +206,25 @@ function EnPagoDetalle({ vale }: { vale: Vale }) {
         ))}
       </div>
 
-      {/* avance */}
-      <section className="mt-6">
-        <h2 className="mb-2 text-lg font-semibold text-ink-900">Avance de pagos</h2>
-        <div className="rounded-2xl border border-ink-100 bg-white p-5">
-          <p className="text-sm text-ink-700">
-            <span className="font-semibold text-ink-900">{realizados} de {pagosTotales}</span> pagos realizados
-          </p>
-          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-ink-100">
-            <div className="h-full rounded-full bg-kelder-600" style={{ width: `${progreso}%` }} />
-          </div>
-        </div>
-      </section>
-
-      {/* calendario */}
-      <section className="mt-6">
-        <h2 className="mb-3 text-lg font-semibold text-ink-900">Calendario de pagos</h2>
+      {/* Unified PAGOS — one list; the visual state already says what's history vs upcoming */}
+      <section className="mt-6 pb-4">
+        <h2 className="mb-3 text-lg font-semibold text-ink-900">Pagos</h2>
         <div className="divide-y divide-ink-100 rounded-2xl border border-ink-100 bg-white">
           {(vale.pagos ?? []).map((p) => {
-            const Icon = p.estado === "pagado" ? CheckCircle2 : p.estado === "proximo" ? CalendarClock : Circle;
+            const Icon = p.estado === "pagado" ? CheckCircle2 : p.estado === "proximo" ? CircleDot : Circle;
             const tint =
               p.estado === "pagado"
-                ? "bg-success-100 text-success-600"
+                ? "text-success-600"
                 : p.estado === "proximo"
-                  ? "bg-kelder-50 text-kelder-600"
-                  : "bg-ink-50 text-ink-400";
+                  ? "text-kelder-600"
+                  : "text-ink-300";
             const etiqueta = p.estado === "pagado" ? "Pagado" : p.estado === "proximo" ? "Próximo" : "Pendiente";
             return (
               <div key={p.id} className="flex items-center gap-3 px-4 py-3.5">
-                <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${tint}`}>
-                  <Icon size={16} aria-hidden="true" />
-                </span>
+                <Icon size={20} className={`shrink-0 ${tint}`} aria-hidden="true" />
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-medium text-ink-900">Pago {p.numero} de {pagosTotales}</p>
-                  <p className="text-sm text-ink-500">{etiqueta} · {p.fecha}</p>
+                  <p className="text-sm text-ink-500">{p.fecha} · {etiqueta}</p>
                 </div>
                 <p className="shrink-0 text-sm font-semibold text-ink-900">{formatMXN(p.monto)}</p>
               </div>
@@ -251,27 +232,6 @@ function EnPagoDetalle({ vale }: { vale: Vale }) {
           })}
         </div>
       </section>
-
-      {/* historial */}
-      {historial.length > 0 && (
-        <section className="mt-6 pb-4">
-          <h2 className="mb-3 text-lg font-semibold text-ink-900">Historial de pagos</h2>
-          <div className="divide-y divide-ink-100 rounded-2xl border border-ink-100 bg-white">
-            {historial.map((p) => (
-              <div key={p.id} className="flex items-center gap-3 px-4 py-3">
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-success-100 text-success-600">
-                  <CheckCircle2 size={16} aria-hidden="true" />
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-ink-900">Pago {p.numero} de {pagosTotales}</p>
-                  <p className="text-sm text-ink-500">Pagado · {p.fecha}</p>
-                </div>
-                <p className="shrink-0 text-sm font-semibold text-ink-900">{formatMXN(p.monto)}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
     </>
   );
 }

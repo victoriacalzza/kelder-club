@@ -12,28 +12,27 @@ import { CrediValesEmpty } from "@/components/ui/CrediValesEmpty";
 import { CreditoKelderCard } from "@/components/ui/CreditoKelderCard";
 import { vales as valesDefault, creditoKelder, resumenCrediVales, formatMXN, type Vale } from "@/lib/mock-data";
 
-// Main CrediVale navigation prioritizes what the member can act on NOW; the history is secondary,
-// on demand. Disponibles = UNUSED (usable), En pago = USED (quincenal payments), Historial =
-// everything past/non-actionable (vencidos, utilizados, extravales), filtered by chips inside.
-type MainTab = "disponibles" | "en_pago" | "historial";
-type HistFiltro = "todos" | "vencidos" | "utilizados" | "extravales";
+// Main CrediVale navigation prioritizes what the member can act on NOW. Disponibles = UNUSED
+// (usable), En pago = USED (quincenal payments), Extravales = leftover AVAILABLE money (its own
+// tab — high value, never buried), Historial = past/non-actionable (vencidos, utilizados).
+type MainTab = "disponibles" | "en_pago" | "extravales" | "historial";
+type HistFiltro = "todos" | "vencidos" | "utilizados";
 // Legacy tab values (older storyboards) map onto the new structure.
-type InitialTab = MainTab | "extravales" | "vencidos";
+type InitialTab = MainTab | "vencidos";
 
 const mainTabs: { key: MainTab; label: string }[] = [
   { key: "disponibles", label: "Disponibles" },
   { key: "en_pago", label: "En pago" },
+  { key: "extravales", label: "Extravales" },
   { key: "historial", label: "Historial" },
 ];
 const histChips: { key: HistFiltro; label: string; estados: Vale["estado"][] }[] = [
-  { key: "todos", label: "Todos", estados: ["vencido", "utilizado", "extravale"] },
+  { key: "todos", label: "Todos", estados: ["vencido", "utilizado"] },
   { key: "vencidos", label: "Vencidos", estados: ["vencido"] },
   { key: "utilizados", label: "Utilizados", estados: ["utilizado"] },
-  { key: "extravales", label: "Extravales", estados: ["extravale"] },
 ];
 
 function mapInitial(t: InitialTab): { tab: MainTab; hist: HistFiltro } {
-  if (t === "extravales") return { tab: "historial", hist: "extravales" };
   if (t === "vencidos") return { tab: "historial", hist: "vencidos" };
   return { tab: t, hist: "todos" };
 }
@@ -57,13 +56,17 @@ export function Vales({
   const [tab, setTab] = useState<MainTab>(init.tab);
   const [hist, setHist] = useState<HistFiltro>(init.hist);
 
-  const countDisponibles = vales.filter((v) => v.estado === "disponible").length;
-  const countEnPago = vales.filter((v) => v.estado === "en_pago").length;
   const disponiblesList = vales.filter((v) => v.estado === "disponible");
   const enPagoList = vales.filter((v) => v.estado === "en_pago");
+  const extravalesList = vales.filter((v) => v.estado === "extravale");
   const histEstados = histChips.find((c) => c.key === hist)!.estados;
   const histList = vales.filter((v) => histEstados.includes(v.estado));
-  const cuentaTab: Record<MainTab, number | null> = { disponibles: countDisponibles, en_pago: countEnPago, historial: null };
+  const cuentaTab: Record<MainTab, number | null> = {
+    disponibles: disponiblesList.length,
+    en_pago: enPagoList.length,
+    extravales: extravalesList.length,
+    historial: null,
+  };
 
   const sinNada = !tieneCredito && vales.length === 0; // discovery state
 
@@ -134,6 +137,17 @@ export function Vales({
               ) : (
                 <EnPago lista={enPagoList} onOpen={(id) => navigate(`/vales/${id}`)} />
               )
+            ) : tab === "extravales" ? (
+              /* Extravales — leftover AVAILABLE money, its own tab so it's never buried */
+              extravalesList.length === 0 ? (
+                <EmptyRow>No tienes Extravales por ahora.</EmptyRow>
+              ) : (
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {extravalesList.map((v) => (
+                    <ExtravaleCard key={v.id} vale={v} onClick={() => navigate(`/vales/${v.id}`)} />
+                  ))}
+                </div>
+              )
             ) : (
               /* Historial — secondary sub-filters, then the filtered list */
               <div>
@@ -151,23 +165,13 @@ export function Vales({
                   ))}
                 </div>
 
-                {hist === "extravales" && histList.length > 0 && (
-                  <p className="mb-4 max-w-2xl text-sm text-ink-500">
-                    Saldo que te sobró de un CrediVale que ya utilizaste. Sigue disponible para que lo uses cuando quieras.
-                  </p>
-                )}
-
                 {histList.length === 0 ? (
                   <EmptyRow>No tienes CrediVales en esta categoría.</EmptyRow>
                 ) : (
                   <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    {histList.map((v) =>
-                      v.estado === "extravale" ? (
-                        <ExtravaleCard key={v.id} vale={v} onClick={() => navigate(`/vales/${v.id}`)} />
-                      ) : (
-                        <CrediValeVencidoCard key={v.id} vale={v} onClick={() => navigate(`/vales/${v.id}`)} />
-                      ),
-                    )}
+                    {histList.map((v) => (
+                      <CrediValeVencidoCard key={v.id} vale={v} onClick={() => navigate(`/vales/${v.id}`)} />
+                    ))}
                   </div>
                 )}
               </div>
@@ -185,109 +189,50 @@ function EmptyRow({ children }: { children: React.ReactNode }) {
   );
 }
 
-/* ─────────────────────────── En pago tab ─────────────────────────── */
+/* ─────────────────────────── En pago tab ───────────────────────────
+   Progressive disclosure: a single COMPACT summary (next payment + total pending), then the
+   CrediVales directly. The old big resumen, próximo-pago table and "detalle" heading are gone —
+   that Level-3 data now lives inside each CrediVale's detail. */
 
 function EnPago({ lista, onOpen }: { lista: Vale[]; onOpen: (id: string) => void }) {
-  const { saldoPendiente, proximaQuincena, proximaFecha, enPago } = resumenCrediVales;
-  // Rows that fall in the soonest fortnight (drive the "total esta quincena").
+  const { saldoPendiente, proximaQuincena, proximaFecha } = resumenCrediVales;
+  // Each CrediVale is a debt with a DIFFERENT mayorista — the summary must break the fortnight
+  // down per mayorista, not only show a consolidated total.
   const quincena = lista.filter((v) => v.proximoPago?.fecha === proximaFecha);
-  const total = quincena.reduce((s, v) => s + (v.proximoPago?.monto ?? 0), 0);
 
   return (
-    <div className="space-y-8">
-      {/* Resumen de CrediVales — explicitly labelled, never confused with Crédito Kelder */}
-      <div className="rounded-2xl border border-ink-100 bg-white p-5 sm:p-6">
-        <h3 className="text-base font-semibold text-ink-900">Resumen de tus CrediVales en pago</h3>
-        <p className="mt-0.5 text-sm text-ink-500">Consulta cuánto tienes pendiente y tus próximos pagos quincenales.</p>
+    <div className="space-y-4">
+      {/* Compact summary — total to pay next fortnight AND how much goes to each mayorista */}
+      <div className="rounded-2xl border border-ink-100 bg-white p-5">
+        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-ink-400">Próxima quincena</p>
+        <p className="mt-0.5 text-lg font-semibold text-ink-900">{proximaFecha}</p>
 
-        <div className="mt-4 grid grid-cols-2 gap-x-5 gap-y-5 sm:grid-cols-4">
-          <div>
-            <p className="text-sm text-ink-500">Saldo pendiente en CrediVales</p>
-            <p className="mt-0.5 text-2xl font-semibold tracking-tight text-ink-900">{formatMXN(saldoPendiente)}</p>
-            <p className="mt-0.5 text-xs text-ink-400">Total pendiente de todos tus CrediVales</p>
-          </div>
-          <div className="sm:border-l sm:border-ink-100 sm:pl-5">
-            <p className="text-sm text-ink-500">Próximo pago quincenal</p>
-            <p className="mt-0.5 text-2xl font-semibold text-ink-900">{formatMXN(proximaQuincena)}</p>
-            <p className="mt-0.5 text-xs text-ink-400">Suma de los pagos de la próxima quincena</p>
-          </div>
-          <div className="sm:border-l sm:border-ink-100 sm:pl-5">
-            <p className="text-sm text-ink-500">Próxima fecha de pago</p>
-            <p className="mt-0.5 text-2xl font-semibold text-ink-900">{proximaFecha}</p>
-          </div>
-          <div className="sm:border-l sm:border-ink-100 sm:pl-5">
-            <p className="text-sm text-ink-500">CrediVales en pago</p>
-            <p className="mt-0.5 text-2xl font-semibold text-ink-900">{enPago}</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Desglose del próximo pago */}
-      <div>
-        <h3 className="text-base font-semibold text-ink-900">Tu próximo pago de CrediVales</h3>
-        <p className="mb-3 mt-0.5 text-sm text-ink-500">Esto es lo que corresponde pagar en la próxima quincena.</p>
-
-        {/* desktop: table */}
-        <div className="hidden overflow-hidden rounded-2xl border border-ink-100 bg-white md:block">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-ink-100 text-left text-xs uppercase tracking-wide text-ink-400">
-                <th className="px-4 py-3 font-medium">CrediVale</th>
-                <th className="px-4 py-3 font-medium">Mayorista</th>
-                <th className="px-4 py-3 font-medium">Pago quincenal</th>
-                <th className="px-4 py-3 font-medium">Avance</th>
-                <th className="px-4 py-3 font-medium">Próxima fecha</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-ink-100">
-              {quincena.map((v) => (
-                <tr key={v.id}>
-                  <td className="px-4 py-3 font-mono text-ink-600">{v.folio}</td>
-                  <td className="px-4 py-3 text-ink-900">{v.mayoristaPersona}</td>
-                  <td className="px-4 py-3 font-semibold text-ink-900">{formatMXN(v.proximoPago!.monto)}</td>
-                  <td className="px-4 py-3 text-ink-500">{v.pagoActual} de {v.pagosTotales}</td>
-                  <td className="px-4 py-3 text-ink-500">{v.proximoPago!.fecha}</td>
-                </tr>
-              ))}
-            </tbody>
-            <tfoot>
-              <tr className="border-t-2 border-ink-100 bg-ink-50">
-                <td className="px-4 py-3 font-semibold text-ink-900" colSpan={2}>Total a pagar esta quincena</td>
-                <td className="px-4 py-3 text-lg font-bold text-kelder-600">{formatMXN(total)}</td>
-                <td className="px-4 py-3 text-ink-400" colSpan={2}>{proximaFecha}</td>
-              </tr>
-            </tfoot>
-          </table>
+        <div className="mt-3 flex items-baseline justify-between gap-3">
+          <span className="text-sm text-ink-500">Total a pagar</span>
+          <span className="text-2xl font-semibold tracking-tight text-ink-900">{formatMXN(proximaQuincena)}</span>
         </div>
 
-        {/* mobile: cards + total */}
-        <div className="space-y-3 md:hidden">
+        {/* per-mayorista breakdown of the fortnight */}
+        <div className="mt-3 space-y-1.5 border-t border-ink-100 pt-3">
           {quincena.map((v) => (
-            <div key={v.id} className="rounded-2xl border border-ink-100 bg-white p-4">
-              <div className="flex items-center justify-between">
-                <span className="font-mono text-sm text-ink-600">{v.folio}</span>
-                <span className="text-lg font-semibold text-ink-900">{formatMXN(v.proximoPago!.monto)}</span>
-              </div>
-              <p className="mt-1 text-sm text-ink-500">
-                {v.mayoristaPersona} · Pago {v.pagoActual} de {v.pagosTotales} · {v.proximoPago!.fecha}
-              </p>
+            <div key={v.id} className="flex items-center justify-between text-sm">
+              <span className="text-ink-600">{v.mayoristaPersona}</span>
+              <span className="font-medium text-ink-900">{formatMXN(v.proximoPago!.monto)}</span>
             </div>
           ))}
-          <div className="flex items-center justify-between rounded-2xl border border-kelder-100 bg-kelder-50 px-4 py-3">
-            <span className="text-sm font-semibold text-ink-900">Total a pagar esta quincena</span>
-            <span className="text-lg font-bold text-kelder-600">{formatMXN(total)}</span>
-          </div>
+        </div>
+
+        <div className="mt-3 flex items-center justify-between border-t border-ink-100 pt-3 text-sm">
+          <span className="text-ink-500">Deuda total en CrediVales</span>
+          <span className="font-semibold text-ink-900">{formatMXN(saldoPendiente)}</span>
         </div>
       </div>
 
-      {/* Detalle de CrediVales en pago */}
-      <div>
-        <h3 className="mb-3 text-base font-semibold text-ink-900">Detalle de CrediVales en pago</h3>
-        <div className="grid gap-4 sm:grid-cols-2">
-          {lista.map((v) => (
-            <CrediValeEnPagoCard key={v.id} vale={v} onClick={() => onOpen(v.id)} />
-          ))}
-        </div>
+      {/* The CrediVales themselves — compact cards keep each mayorista's name + amounts, detail on demand */}
+      <div className="grid gap-4 sm:grid-cols-2">
+        {lista.map((v) => (
+          <CrediValeEnPagoCard key={v.id} vale={v} onClick={() => onOpen(v.id)} />
+        ))}
       </div>
     </div>
   );
