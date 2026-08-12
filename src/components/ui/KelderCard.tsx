@@ -15,10 +15,10 @@ interface KelderCardProps {
   onShowQR?: () => void;
   onUse?: () => void;
   onStart?: () => void;
-  onVerMovimientos?: () => void;
+  onComprar?: () => void;
 }
 
-export function KelderCard({ cashback, onShowQR, onUse, onStart, onVerMovimientos }: KelderCardProps) {
+export function KelderCard({ cashback, onShowQR, onUse, onStart, onComprar }: KelderCardProps) {
   const tieneCashback = cashback > 0;
   const { faltan, meta } = cuenta.proximaRecompensa;
   const progreso = Math.min(100, Math.round(((meta - faltan) / meta) * 100));
@@ -61,10 +61,11 @@ export function KelderCard({ cashback, onShowQR, onUse, onStart, onVerMovimiento
               </div>
               <div className="mt-4 flex gap-2.5">
                 <button
-                  onClick={onVerMovimientos}
-                  className="flex min-h-[44px] flex-1 items-center justify-center rounded-full bg-white text-[14px] font-semibold text-ink-950 hover:bg-white/90"
+                  onClick={onComprar}
+                  className="flex min-h-[44px] flex-[1.4] items-center justify-center gap-1.5 rounded-full bg-white px-3 text-[14px] font-semibold text-ink-950 hover:bg-white/90"
                 >
-                  Ver movimientos
+                  <Store size={16} aria-hidden="true" />
+                  Ver qué puedo comprar
                 </button>
                 <button
                   onClick={onUse}

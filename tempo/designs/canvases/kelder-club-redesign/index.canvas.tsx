@@ -36,6 +36,7 @@ import Buscardrawerstoryboard from "./BuscarDrawerStoryboard";
 import Buscartabletstoryboard from "./BuscarTabletStoryboard";
 import Buscarmobileiniciostoryboard from "./BuscarMobileInicioStoryboard";
 import Mobilecatalogostoryboard from "./MobileCatalogoStoryboard";
+import Mobilecatalogocashbackstoryboard from "./MobileCatalogoCashbackStoryboard";
 import Mobileproductostoryboard from "./MobileProductoStoryboard";
 import Mobiletiendastoryboard from "./MobileTiendaStoryboard";
 import Mobilepromocionesstoryboard from "./MobilePromocionesStoryboard";
@@ -168,6 +169,12 @@ export default function KelderClubRedesignCanvas() {
         name="App móvil · Catálogo extendido (390)"
         component={Mobilecatalogostoryboard}
         layout={{ x: 12600, y: 6400, width: 390, height: 1200 }}
+      />
+      <Storyboard
+        id="MobileCatalogoCashback"
+        name="App móvil · Qué puedo comprar (cashback) (390)"
+        component={Mobilecatalogocashbackstoryboard}
+        layout={{ x: 14600, y: 6400, width: 390, height: 1200 }}
       />
       <Storyboard
         id="MobileProducto"

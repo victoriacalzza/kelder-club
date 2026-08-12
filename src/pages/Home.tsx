@@ -1,9 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowRight } from "lucide-react";
 import { KelderCard } from "@/components/ui/KelderCard";
 import { CreditoVadesResumen } from "@/components/ui/CreditoVadesResumen";
-import { CreditoKelderCard } from "@/components/ui/CreditoKelderCard";
 import { OrderInProgress } from "@/components/ui/OrderInProgress";
 import { PromoBanner } from "@/components/ui/PromoBanner";
 import { MarcasMarquee } from "@/components/ui/MarcasMarquee";
@@ -16,7 +14,6 @@ import {
   pedidoActivo,
   user,
   perfilDemo,
-  formatMXN,
   type ClientProfile,
 } from "@/lib/mock-data";
 
@@ -34,46 +31,36 @@ export function Home({ profile = perfilDemo }: { profile?: ClientProfile }) {
         <h1 className="mt-1 text-3xl font-semibold tracking-tight text-ink-900 sm:text-4xl">Hola, {user.nombre}</h1>
       </header>
 
-      {/* 1 · Cashback hero — compact on mobile. Paying with QR lives in the central Pagar action. */}
+      {/* 1 · Cashback hero — compact on mobile. Its primary action turns the balance into
+          commercial discovery (Ver qué puedo comprar); paying with QR lives in the Pagar action. */}
       <div className="mt-6">
         <KelderCard
           cashback={profile.cashback}
           onShowQR={() => setModal("qr")}
           onUse={() => setModal("canjear")}
           onStart={() => navigate("/tiendas")}
-          onVerMovimientos={() => navigate("/cashback")}
+          onComprar={() => {
+            track("cashback_product_click", { cashback: profile.cashback });
+            navigate("/catalogo?contexto=cashback");
+          }}
         />
       </div>
-
-      {/* Cashback → catalog bridge: make the balance actionable, not just a number */}
-      <button
-        onClick={() => {
-          track("cashback_product_click", { cashback: profile.cashback });
-          navigate("/catalogo");
-        }}
-        className="mt-3 flex w-full items-center justify-between rounded-2xl border border-ink-100 bg-white px-4 py-3 text-left shadow-soft"
-      >
-        <span className="text-sm text-ink-700">
-          Tienes <span className="font-semibold text-ink-900">{formatMXN(profile.cashback)}</span> de cashback
-        </span>
-        <span className="inline-flex shrink-0 items-center gap-1 text-sm font-semibold text-kelder-600">
-          Ver qué puedo comprar
-          <ArrowRight size={15} aria-hidden="true" />
-        </span>
-      </button>
 
       {/* Business units — compact recognition strip */}
       <div className="mt-7">
         <MarcasMarquee onSelect={() => navigate("/buscar")} />
       </div>
 
-      {/* 2 · Crédito y vales — Home only RESUMES and DIRECTS into the dedicated tab */}
+      {/* 2 · Crédito y vales — Home only RESUMES and DIRECTS into the dedicated tab. Content is
+          built from the member's real state; it never shows products/catalog/promotions/cashback. */}
       <div className="mt-8">
-        {profile.credito === "no_miembro" ? (
-          <CreditoKelderCard onConocer={() => navigate("/vales")} />
-        ) : (
-          <CreditoVadesResumen onVer={() => navigate("/vales")} onDescubrir={() => navigate("/catalogo")} />
-        )}
+        <CreditoVadesResumen
+          tieneCredito={profile.credito === "con_vales" || profile.credito === "sin_vales"}
+          tieneCredivales={profile.credito === "con_vales"}
+          onVer={() => navigate("/vales")}
+          onConocerCredito={() => navigate("/vales")}
+          onConocerCredivale={() => navigate("/vales")}
+        />
       </div>
 
       {/* 3 · Order in progress — only when one exists */}

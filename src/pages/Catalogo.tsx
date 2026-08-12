@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Search } from "lucide-react";
 import { TopBar } from "@/components/layout/TopBar";
 import { BackButton } from "@/components/layout/BackButton";
 import { ProductPeekCard } from "@/components/ui/ProductPeekCard";
 import { useTiendaContexto } from "@/lib/useTiendaContexto";
-import { catalogo, tiposProducto, disponibilidadDeProducto, type TipoProducto } from "@/lib/mock-data";
+import { catalogo, cuenta, tiposProducto, disponibilidadDeProducto, formatMXN, type TipoProducto } from "@/lib/mock-data";
 import { track } from "@/lib/analytics";
 
 type Chip = TipoProducto | "Cerca de mí" | "Todo";
@@ -15,11 +15,17 @@ const chips: Chip[] = ["Todo", "Cerca de mí", ...tiposProducto];
  * Catálogo extendido — discovery of products available in physical stores (may differ from
  * ecommerce). Logic is PRODUCTO → DISPONIBILIDAD → TIENDA → VISITA; the card CTA is the product
  * detail (availability), never "Comprar". "Cerca de mí" ranks by the closest store that stocks it.
+ *
+ * `?contexto=cashback` turns it into cashback-driven discovery ("qué puedo comprar con mis $245"):
+ * it defaults to the nearby ranking, communicates the balance, and shows each product's cashback
+ * purchasing power — prioritizing what's available in the member's nearest/preferred store.
  */
 export function Catalogo() {
   const navigate = useNavigate();
+  const [params] = useSearchParams();
+  const cashbackMode = params.get("contexto") === "cashback";
   const { tienda } = useTiendaContexto();
-  const [chip, setChip] = useState<Chip>("Todo");
+  const [chip, setChip] = useState<Chip>(cashbackMode ? "Cerca de mí" : "Todo");
 
   let lista = catalogo.filter((p) => p.disponible !== false);
   if (chip !== "Todo" && chip !== "Cerca de mí") lista = lista.filter((p) => p.tipo === chip);
@@ -34,7 +40,14 @@ export function Catalogo() {
   return (
     <div>
       <BackButton />
-      <TopBar title="Catálogo" subtitle="Descubre lo que puedes encontrar en tiendas cerca de ti." />
+      {cashbackMode ? (
+        <TopBar
+          title="Qué puedo comprar"
+          subtitle={`Con tus ${formatMXN(cuenta.cashbackDisponible)} de cashback, esto puedes comprar o complementar cerca de ti.`}
+        />
+      ) : (
+        <TopBar title="Catálogo" subtitle="Descubre lo que puedes encontrar en tiendas cerca de ti." />
+      )}
 
       {/* jump to full search */}
       <button
@@ -75,9 +88,10 @@ export function Catalogo() {
               key={p.id}
               producto={p}
               onClick={() => {
-                track("product_view", { producto: p.id, origen: "catalogo" });
+                track(cashbackMode ? "cashback_product_click" : "product_view", { producto: p.id, origen: "catalogo" });
                 navigate(`/producto/${p.id}`);
               }}
+              poderCompraCashback={cashbackMode ? cuenta.cashbackDisponible : undefined}
               disponibilidadLabel={`Disponible en ${disp.length} ${disp.length === 1 ? "tienda" : "tiendas"}`}
             />
           );

@@ -1,6 +1,6 @@
 import { Heart } from "lucide-react";
 import type { Producto } from "@/lib/mock-data";
-import { formatMXN } from "@/lib/mock-data";
+import { formatMXN, precioConCashback } from "@/lib/mock-data";
 import { useClub } from "@/lib/ClubContext";
 import { track } from "@/lib/analytics";
 
@@ -16,11 +16,13 @@ interface ProductPeekCardProps {
   onClick?: () => void;
   disponibilidadLabel?: string; // e.g. "Disponible en esta tienda", "Últimas piezas"
   disponibilidadTono?: "ok" | "low";
+  poderCompraCashback?: number; // available cashback → shows "Con tu cashback pagarías $X"
 }
 
-export function ProductPeekCard({ producto, onClick, disponibilidadLabel, disponibilidadTono = "ok" }: ProductPeekCardProps) {
+export function ProductPeekCard({ producto, onClick, disponibilidadLabel, disponibilidadTono = "ok", poderCompraCashback }: ProductPeekCardProps) {
   const { esFavorito, toggleFavorito } = useClub();
   const guardado = esFavorito(producto.id);
+  const conCashback = poderCompraCashback ? precioConCashback(producto.precio, poderCompraCashback) : null;
 
   return (
     <div
@@ -55,6 +57,9 @@ export function ProductPeekCard({ producto, onClick, disponibilidadLabel, dispon
         <p className="text-xs text-ink-400">{producto.marca}</p>
         <p className="truncate text-[14px] font-medium text-ink-900">{producto.modelo}</p>
         <p className="mt-0.5 text-[15px] font-semibold text-ink-900">{formatMXN(producto.precio)}</p>
+        {conCashback !== null && (
+          <p className="mt-0.5 text-xs font-medium text-kelder-600">Con tu cashback: {formatMXN(conCashback)}</p>
+        )}
         {disponibilidadLabel && (
           <p className={`mt-1 text-xs font-medium ${disponibilidadTono === "low" ? "text-warning-600" : "text-success-700"}`}>
             {disponibilidadLabel}
