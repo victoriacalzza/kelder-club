@@ -84,18 +84,26 @@ export function KelderCard({ cashback, onShowQR, onUse, onStart, onComprar }: Ke
               <p className="mt-4 text-[15px] leading-relaxed text-white/75">Es tuyo. Úsalo para ahorrar en tu próxima compra.</p>
 
               <div className="mt-7 space-y-3">
+                {/* Primary commercial CTA (web keeps a natural QR access below it, unlike the app) */}
+                <button
+                  onClick={onComprar}
+                  className="lift flex min-h-[56px] w-full items-center justify-center gap-2.5 rounded-full bg-white text-[15px] font-semibold text-ink-950 hover:bg-white/90"
+                >
+                  <Store size={19} aria-hidden="true" />
+                  Ver qué puedo comprar
+                </button>
                 <button
                   onClick={onShowQR}
-                  className="lift flex min-h-[56px] w-full items-center justify-center gap-2.5 rounded-full bg-white text-[15px] font-semibold text-ink-950 hover:bg-white/90"
+                  className="flex min-h-[56px] w-full items-center justify-center gap-2.5 rounded-full border border-white/10 bg-white/[0.06] text-[15px] font-semibold text-white hover:bg-white/[0.12]"
                 >
                   <QrCode size={20} aria-hidden="true" />
                   Mostrar QR para pagar
                 </button>
                 <button
                   onClick={onUse}
-                  className="flex min-h-[56px] w-full items-center justify-center gap-2.5 rounded-full border border-white/10 bg-white/[0.06] text-[15px] font-semibold text-white hover:bg-white/[0.12]"
+                  className="mx-auto flex min-h-[44px] items-center justify-center gap-1.5 text-sm font-medium text-white/70 hover:text-white"
                 >
-                  <CreditCard size={19} aria-hidden="true" />
+                  <CreditCard size={17} aria-hidden="true" />
                   Canjear en línea
                 </button>
               </div>

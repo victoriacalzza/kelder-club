@@ -15,6 +15,7 @@ const items = [
   { to: "/vales", label: "Crédito y vales" },
   { to: "/compras", label: "Compras" },
   { to: "/tiendas", label: "Tiendas" },
+  { to: "/club", label: "Mi Club" },
 ];
 
 export function TopNav() {
