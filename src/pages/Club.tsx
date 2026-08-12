@@ -3,7 +3,7 @@ import {
   Gift,
   ShoppingBag,
   PercentCircle,
-  Bell,
+  Tag,
   User,
   Heart,
   Store,
@@ -14,7 +14,7 @@ import {
   ChevronRight,
   LogOut,
 } from "lucide-react";
-import { user } from "@/lib/mock-data";
+import { user, promocionesActivas } from "@/lib/mock-data";
 
 /**
  * "Mi Club" — the member's personal center: "everything about me, my purchases, benefits and
@@ -29,6 +29,7 @@ interface Acceso {
   icon: typeof Gift;
   tint: string;
   to: string;
+  count?: number;
 }
 interface Fila {
   label: string;
@@ -38,15 +39,15 @@ interface Fila {
 }
 
 const accesos: Acceso[] = [
-  { label: "Beneficios", desc: "Recompensas y promociones", icon: Gift, tint: "bg-warning-100 text-warning-600", to: "/proximamente/beneficios" },
+  { label: "Beneficios", desc: "Recompensas para ti", icon: Gift, tint: "bg-warning-100 text-warning-600", to: "/proximamente/beneficios" },
   { label: "Mis compras", desc: "Tickets y pedidos", icon: ShoppingBag, tint: "bg-info-100 text-info-700", to: "/compras" },
   { label: "Mi cashback", desc: "Saldo y movimientos", icon: PercentCircle, tint: "bg-success-100 text-success-600", to: "/cashback" },
-  { label: "Notificaciones", desc: "Avisos y novedades", icon: Bell, tint: "bg-kelder-50 text-kelder-600", to: "/proximamente/notificaciones" },
+  { label: "Promociones", desc: "Ofertas vigentes", icon: Tag, tint: "bg-kelder-50 text-kelder-600", to: "/promociones", count: promocionesActivas },
 ];
 
 const cuenta: Fila[] = [
   { label: "Mis datos", desc: "Información personal", icon: User, to: "/perfil" },
-  { label: "Mis favoritos", desc: "Productos que guardaste", icon: Heart, to: "/proximamente/favoritos" },
+  { label: "Mis favoritos", desc: "Productos que guardaste", icon: Heart, to: "/favoritos" },
   { label: "Mi tienda preferida", desc: "Tu sucursal principal", icon: Store, to: "/tiendas" },
   { label: "Preferencias", desc: "Configuración de tu experiencia", icon: SlidersHorizontal, to: "/proximamente/preferencias" },
 ];
@@ -85,7 +86,14 @@ export function Club() {
                 <Icon size={20} />
               </span>
               <div>
-                <p className="text-[15px] font-semibold text-ink-900">{a.label}</p>
+                <p className="flex items-center gap-1.5 text-[15px] font-semibold text-ink-900">
+                  {a.label}
+                  {a.count ? (
+                    <span className="rounded-full bg-kelder-50 px-1.5 py-0.5 text-[11px] font-semibold leading-none text-kelder-700">
+                      {a.count}
+                    </span>
+                  ) : null}
+                </p>
                 <p className="text-xs text-ink-500">{a.desc}</p>
               </div>
             </button>

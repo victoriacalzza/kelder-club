@@ -9,7 +9,17 @@ import { logoDeUnidad } from "@/lib/mock-data";
  * The canvas for this component is at tempo/designs/design-system/primitives/index.canvas.tsx.
  * If you adjust this component in any way, ensure the canvas and its asset declaration stay consistent.
  */
-export function StorePreview({ tienda, onDirections, onVerTodas }: { tienda: Tienda; onDirections?: () => void; onVerTodas?: () => void }) {
+export function StorePreview({
+  tienda,
+  onDirections,
+  onVerTodas,
+  onExplorar,
+}: {
+  tienda: Tienda;
+  onDirections?: () => void;
+  onVerTodas?: () => void;
+  onExplorar?: () => void;
+}) {
   return (
     <div className="overflow-hidden rounded-2xl border border-ink-100 bg-white">
       <div className="flex flex-col md:min-h-[240px] md:flex-row">
@@ -44,10 +54,16 @@ export function StorePreview({ tienda, onDirections, onVerTodas }: { tienda: Tie
             <span>A {tienda.distancia}</span>
           </div>
 
-          <div className="mt-1 flex items-center gap-4">
-            <button onClick={onDirections} className="inline-flex min-h-[44px] items-center gap-1 text-sm font-semibold text-kelder-600">
+          <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1">
+            {onExplorar && (
+              <button onClick={onExplorar} className="inline-flex min-h-[44px] items-center gap-1 text-sm font-semibold text-kelder-600">
+                Explorar esta tienda
+                <ArrowUpRight size={15} aria-hidden="true" />
+              </button>
+            )}
+            <button onClick={onDirections} className={`inline-flex min-h-[44px] items-center gap-1 text-sm ${onExplorar ? "font-medium text-ink-500 hover:text-ink-900" : "font-semibold text-kelder-600"}`}>
               Cómo llegar
-              <ArrowUpRight size={15} aria-hidden="true" />
+              {!onExplorar && <ArrowUpRight size={15} aria-hidden="true" />}
             </button>
             <button onClick={onVerTodas} className="inline-flex min-h-[44px] items-center text-sm font-medium text-ink-500 hover:text-ink-900">
               Ver todas las sucursales

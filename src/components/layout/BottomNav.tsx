@@ -15,12 +15,15 @@ const tabs = [
     icon: Wallet,
     match: (p: string) => p.startsWith("/vales") || p.startsWith("/credito"),
   },
-  { to: "/tiendas", label: "Tiendas", icon: Store, match: (p: string) => p.startsWith("/tiendas") },
+  { to: "/tiendas", label: "Tiendas", icon: Store, match: (p: string) => p.startsWith("/tiendas") || p.startsWith("/tienda/") },
   {
     to: "/club",
     label: "Mi Club",
     icon: Sparkles,
-    match: (p: string) => ["/club", "/cashback", "/compras", "/perfil", "/proximamente"].some((r) => p.startsWith(r)),
+    match: (p: string) =>
+      ["/club", "/cashback", "/compras", "/perfil", "/proximamente", "/promociones", "/promocion", "/favoritos", "/mi-visita"].some((r) =>
+        p.startsWith(r),
+      ),
   },
 ];
 

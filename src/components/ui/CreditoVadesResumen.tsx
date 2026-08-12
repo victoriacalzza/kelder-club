@@ -1,4 +1,4 @@
-import { ArrowRight, CreditCard, Ticket } from "lucide-react";
+import { ArrowRight, CreditCard, Ticket, Compass } from "lucide-react";
 import { creditoKelder, credivalesEnPago, credivalesDisponibles, formatMXN } from "@/lib/mock-data";
 
 /**
@@ -6,8 +6,9 @@ import { creditoKelder, credivalesEnPago, credivalesDisponibles, formatMXN } fro
  * EXPLAINS and MANAGES. This is one compact card with two one-line rows (Crédito Kelder,
  * CrediVales) and a single CTA into the full section. It never lists mayoristas, payments
  * or individual CrediVales — those live in /vales. Crédito Kelder and CrediVale stay distinct.
+ * `onDescubrir` adds a purely commercial bridge into the catalog (financial detail stays in /vales).
  */
-export function CreditoVadesResumen({ onVer }: { onVer?: () => void }) {
+export function CreditoVadesResumen({ onVer, onDescubrir }: { onVer?: () => void; onDescubrir?: () => void }) {
   const enPago = credivalesEnPago.length;
   const disponibles = credivalesDisponibles.length;
 
@@ -50,6 +51,18 @@ export function CreditoVadesResumen({ onVer }: { onVer?: () => void }) {
           </div>
         </div>
       </button>
+
+      {/* Commercial bridge into the catalog — the money detail stays in /vales */}
+      {onDescubrir && (
+        <button
+          onClick={onDescubrir}
+          className="flex w-full items-center gap-2 border-t border-ink-100 px-5 py-3 text-left text-sm font-semibold text-kelder-600 sm:px-6"
+        >
+          <Compass size={16} aria-hidden="true" />
+          Descubre productos disponibles cerca de ti
+          <ArrowRight size={14} className="ml-auto" aria-hidden="true" />
+        </button>
+      )}
     </div>
   );
 }

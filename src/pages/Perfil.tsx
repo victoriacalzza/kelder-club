@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Check, ChevronDown } from "lucide-react";
 import { TopBar } from "@/components/layout/TopBar";
+import { BackButton } from "@/components/layout/BackButton";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { user } from "@/lib/mock-data";
@@ -49,6 +50,7 @@ export function Perfil() {
 
   return (
     <div className="mx-auto max-w-2xl">
+      <BackButton to="/club" label="Mi Club" />
       <TopBar title="Perfil" subtitle="Completa tu información a tu ritmo — solo lo que necesites, cuando lo necesites." />
 
       <Card className="flex items-center gap-4">

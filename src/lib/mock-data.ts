@@ -725,3 +725,98 @@ export const tiendasEnLinea = [
 export function formatMXN(value: number) {
   return value.toLocaleString("es-MX", { style: "currency", currency: "MXN", maximumFractionDigits: 0 });
 }
+
+// ─────────────────────────── Catálogo extendido · disponibilidad por tienda ───────────────────────────
+// Kelder Club's north star: PRODUCTO → DISPONIBILIDAD → TIENDA → VISITA. The catalog can surface
+// products found in physical stores that don't necessarily live in ecommerce.
+// MOCK — availability is synthesized deterministically from `producto.tiendas`; NOT real inventory.
+export type DisponibilidadEstado = "Disponible" | "Últimas piezas";
+export interface DisponibilidadTienda {
+  tienda: Tienda;
+  estado: DisponibilidadEstado;
+}
+
+/** Stores (nearest first) where a product can be found, each with a mock stock label. */
+export function disponibilidadDeProducto(p: Producto): DisponibilidadTienda[] {
+  const n = Math.max(1, Math.min(p.tiendas ?? 3, sucursales.length));
+  const cercanas = [...sucursales].sort((a, b) => a.distanciaKm - b.distanciaKm).slice(0, n);
+  return cercanas.map((tienda, i) => ({
+    tienda,
+    estado: n > 2 && i === n - 1 ? "Últimas piezas" : "Disponible",
+  }));
+}
+
+/** The nearest store that stocks a product (first of the availability list). */
+export function tiendaDeProductoCercana(p: Producto): Tienda {
+  return disponibilidadDeProducto(p)[0]?.tienda ?? tiendaCercana;
+}
+
+/** Products available at a given store (inverse of the availability mapping). */
+export function productosDeTienda(tiendaId: string): Producto[] {
+  return catalogo.filter((p) => disponibilidadDeProducto(p).some((d) => d.tienda.id === tiendaId));
+}
+
+/** Store's products ordered as "newest first" (uses the recency index). */
+export function novedadesDeTienda(tiendaId: string): Producto[] {
+  return productosDeTienda(tiendaId).slice().sort((a, b) => (b.orden ?? 0) - (a.orden ?? 0));
+}
+
+// Curated commercial counts shown on store surfaces (headline numbers; the lists above are real subsets).
+export const comercialTienda: Record<string, { promociones: number; novedades: number }> = {
+  t1: { promociones: 4, novedades: 16 },
+  t2: { promociones: 3, novedades: 12 },
+  t3: { promociones: 2, novedades: 9 },
+  t4: { promociones: 5, novedades: 21 },
+  t5: { promociones: 2, novedades: 8 },
+  t6: { promociones: 3, novedades: 14 },
+};
+export function comercialDeTienda(tiendaId: string) {
+  return comercialTienda[tiendaId] ?? { promociones: promocionesDeTienda(tiendaId).length, novedades: productosDeTienda(tiendaId).length };
+}
+
+export function tiendaPorId(id?: string): Tienda | undefined {
+  return sucursales.find((t) => t.id === id);
+}
+
+// ─────────────────────────── Promociones vigentes (ofertas comerciales) ───────────────────────────
+// Promociones ≠ Beneficios. These are current commercial offers meant to generate store visits.
+export type PromoLabel = "Exclusivo en tienda" | "Disponible en tienda";
+export type PromoCategoria = "Calzado" | "Ropa" | "Hogar" | "Telefonía";
+export const promoCategorias: PromoCategoria[] = ["Calzado", "Ropa", "Hogar", "Telefonía"];
+
+export interface Promocion {
+  id: string;
+  titulo: string;
+  marca?: string;
+  categoria: PromoCategoria;
+  descuentoLabel: string; // "-20%", "2x1"…
+  tiendaId: string;
+  vigencia: string; // "Hasta 16 ago"
+  label: PromoLabel;
+  productoIds: string[];
+}
+
+export const promociones: Promocion[] = [
+  { id: "promo1", titulo: "20% en modelos seleccionados Nike", marca: "Nike", categoria: "Calzado", descuentoLabel: "-20%", tiendaId: "t1", vigencia: "Hasta 16 ago", label: "Disponible en tienda", productoIds: ["p8", "p9", "p12"] },
+  { id: "promo2", titulo: "2x1 en playeras y sudaderas", categoria: "Ropa", descuentoLabel: "2x1", tiendaId: "t1", vigencia: "Hasta 20 ago", label: "Exclusivo en tienda", productoIds: ["p11", "p12"] },
+  { id: "promo3", titulo: "Hasta 30% en running Adidas y On", marca: "Adidas", categoria: "Calzado", descuentoLabel: "-30%", tiendaId: "t2", vigencia: "Hasta 18 ago", label: "Disponible en tienda", productoIds: ["p7", "p1", "p6"] },
+  { id: "promo4", titulo: "Regreso a clases: tenis escolares desde $499", categoria: "Calzado", descuentoLabel: "Desde $499", tiendaId: "t5", vigencia: "Hasta 31 ago", label: "Disponible en tienda", productoIds: ["p16", "p10"] },
+  { id: "promo5", titulo: "15% en accesorios y mochilas", categoria: "Ropa", descuentoLabel: "-15%", tiendaId: "t4", vigencia: "Hasta 16 ago", label: "Exclusivo en tienda", productoIds: ["p14", "p15"] },
+  { id: "promo6", titulo: "Puma seleccionados con precio especial", marca: "Puma", categoria: "Calzado", descuentoLabel: "-25%", tiendaId: "t3", vigencia: "Hasta 22 ago", label: "Disponible en tienda", productoIds: ["p2", "p11"] },
+];
+
+export function promocionesDeTienda(tiendaId: string): Promocion[] {
+  return promociones.filter((p) => p.tiendaId === tiendaId);
+}
+export function tiendaDePromo(promo: Promocion): Tienda {
+  return tiendaPorId(promo.tiendaId) ?? tiendaCercana;
+}
+export function productosDePromo(promo: Promocion): Producto[] {
+  return promo.productoIds.map((id) => catalogo.find((p) => p.id === id)).filter((p): p is Producto => !!p);
+}
+export function promoPorId(id?: string): Promocion | undefined {
+  return promociones.find((p) => p.id === id);
+}
+
+// Home "Promociones vigentes" count → feeds the discreet badge in Mi Club.
+export const promocionesActivas = promociones.length;

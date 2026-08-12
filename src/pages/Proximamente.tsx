@@ -3,7 +3,8 @@ import { ChevronLeft, Sparkles } from "lucide-react";
 import { TopBar } from "@/components/layout/TopBar";
 
 const TITULOS: Record<string, { titulo: string; desc: string }> = {
-  beneficios: { titulo: "Beneficios", desc: "Recompensas, promociones y experiencias del grupo." },
+  beneficios: { titulo: "Beneficios", desc: "Recompensas, convenios y cupones por ser parte de Kelder Club." },
+  promociones: { titulo: "Promociones", desc: "Ofertas y descuentos vigentes en las tiendas del grupo." },
   notificaciones: { titulo: "Notificaciones", desc: "Avisos de pagos, cashback y novedades." },
   favoritos: { titulo: "Mis favoritos", desc: "Los productos que guardaste para después." },
   preferencias: { titulo: "Preferencias", desc: "Idioma, tienda favorita y ajustes de tu experiencia." },

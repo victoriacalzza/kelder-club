@@ -1,10 +1,13 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Search, MapPin, Clock, ArrowUpRight } from "lucide-react";
 import { TopBar } from "@/components/layout/TopBar";
 import { StorePreview } from "@/components/ui/StorePreview";
-import { sucursales, tiendaCercana, unidadesNegocio, logoDeUnidad, type UnidadNegocio, type Tienda } from "@/lib/mock-data";
+import { sucursales, tiendaCercana, unidadesNegocio, logoDeUnidad, comercialDeTienda, type UnidadNegocio, type Tienda } from "@/lib/mock-data";
+import { track } from "@/lib/analytics";
 
 export function Tiendas() {
+  const navigate = useNavigate();
   const [query, setQuery] = useState("");
   const [unidad, setUnidad] = useState<UnidadNegocio | "todas">("todas");
 
@@ -43,7 +46,15 @@ export function Tiendas() {
 
       {/* nearest */}
       <div className="mt-6">
-        <StorePreview tienda={cercana} />
+        <StorePreview
+          tienda={cercana}
+          onExplorar={() => {
+            track("store_view", { tienda: cercana.id, origen: "tiendas" });
+            navigate(`/tienda/${cercana.id}`);
+          }}
+          onDirections={() => track("directions_click", { tienda: cercana.id })}
+          onVerTodas={() => navigate(`/tienda/${cercana.id}`)}
+        />
       </div>
 
       {/* other branches, by proximity */}
@@ -52,7 +63,7 @@ export function Tiendas() {
           <h2 className="mb-3 mt-8 text-sm font-medium text-ink-500">Más sucursales</h2>
           <div className="grid gap-4 sm:grid-cols-2">
             {otras.map((t) => (
-              <SucursalCard key={t.id} tienda={t} />
+              <SucursalCard key={t.id} tienda={t} onExplorar={() => navigate(`/tienda/${t.id}`)} />
             ))}
           </div>
         </>
@@ -80,7 +91,8 @@ function FiltroChip({ label, activo, onClick }: { label: string; activo: boolean
   );
 }
 
-function SucursalCard({ tienda }: { tienda: Tienda }) {
+function SucursalCard({ tienda, onExplorar }: { tienda: Tienda; onExplorar?: () => void }) {
+  const { promociones, novedades } = comercialDeTienda(tienda.id);
   return (
     <div className="overflow-hidden rounded-2xl border border-ink-100 bg-white">
       {/* brand image — real photo if present, else this unit's own logo (never a mismatched brand) */}
@@ -111,8 +123,11 @@ function SucursalCard({ tienda }: { tienda: Tienda }) {
           </span>
           <span>A {tienda.distancia}</span>
         </div>
-        <button className="mt-3 inline-flex min-h-[44px] items-center gap-1 text-sm font-semibold text-kelder-600">
-          Cómo llegar
+        <p className="mt-2 text-xs text-ink-400">
+          {promociones} promociones activas · {novedades} novedades
+        </p>
+        <button onClick={onExplorar} className="mt-3 inline-flex min-h-[44px] items-center gap-1 text-sm font-semibold text-kelder-600">
+          Explorar esta tienda
           <ArrowUpRight size={15} aria-hidden="true" />
         </button>
       </div>

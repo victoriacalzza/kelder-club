@@ -35,6 +35,10 @@ import Buscarmobilestoryboard from "./BuscarMobileStoryboard";
 import Buscardrawerstoryboard from "./BuscarDrawerStoryboard";
 import Buscartabletstoryboard from "./BuscarTabletStoryboard";
 import Buscarmobileiniciostoryboard from "./BuscarMobileInicioStoryboard";
+import Mobilecatalogostoryboard from "./MobileCatalogoStoryboard";
+import Mobileproductostoryboard from "./MobileProductoStoryboard";
+import Mobiletiendastoryboard from "./MobileTiendaStoryboard";
+import Mobilepromocionesstoryboard from "./MobilePromocionesStoryboard";
 
 export default function KelderClubRedesignCanvas() {
   return (
@@ -158,6 +162,30 @@ export default function KelderClubRedesignCanvas() {
         name="App móvil · Sheet Pagar (390×844)"
         component={Mobilepagarstoryboard}
         layout={{ x: 10200, y: 6400, width: 390, height: 844 }}
+      />
+      <Storyboard
+        id="MobileCatalogo"
+        name="App móvil · Catálogo extendido (390)"
+        component={Mobilecatalogostoryboard}
+        layout={{ x: 12600, y: 6400, width: 390, height: 1200 }}
+      />
+      <Storyboard
+        id="MobileProducto"
+        name="App móvil · Producto + disponibilidad (390)"
+        component={Mobileproductostoryboard}
+        layout={{ x: 13100, y: 6400, width: 390, height: 1500 }}
+      />
+      <Storyboard
+        id="MobileTienda"
+        name="App móvil · Detalle de tienda (390)"
+        component={Mobiletiendastoryboard}
+        layout={{ x: 13600, y: 6400, width: 390, height: 1400 }}
+      />
+      <Storyboard
+        id="MobilePromociones"
+        name="App móvil · Promociones vigentes (390)"
+        component={Mobilepromocionesstoryboard}
+        layout={{ x: 14100, y: 6400, width: 390, height: 1200 }}
       />
       <Storyboard
         id="ValesExtravales"

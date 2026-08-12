@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Truck, ArrowRight } from "lucide-react";
 import { TopBar } from "@/components/layout/TopBar";
+import { BackButton } from "@/components/layout/BackButton";
 import {
   compras,
   resumenCompras,
@@ -26,6 +27,7 @@ export function Compras() {
 
   return (
     <div>
+      <BackButton to="/club" label="Mi Club" />
       <TopBar title="Mis compras" subtitle="Consulta tus compras, pedidos y el cashback que has generado." />
 
       {/* Compact horizontal cashback summary (not three big cards) */}

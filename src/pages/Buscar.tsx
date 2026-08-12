@@ -2,6 +2,7 @@ import { useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, Camera, ScanLine, SlidersHorizontal, ChevronDown, X, Check } from "lucide-react";
 import { ProductCard } from "@/components/ui/ProductCard";
+import { BackButton } from "@/components/layout/BackButton";
 import { Button } from "@/components/ui/Button";
 import {
   catalogo,
@@ -137,6 +138,7 @@ export function Buscar({
   if (submitted) {
     return (
       <div>
+        <BackButton />
         {/* sticky search bar */}
         <div className="sticky top-16 z-20 -mx-5 mb-5 border-b border-ink-100 bg-cream/90 px-5 py-3 backdrop-blur sm:-mx-8 sm:px-8">
           <label className="relative block">
@@ -342,6 +344,7 @@ export function Buscar({
   // ─────────────────────────── Initial view ───────────────────────────
   return (
     <div className="mx-auto max-w-2xl">
+      <BackButton />
       <header className="mb-6">
         <h1 className="text-2xl font-semibold tracking-tight text-ink-900 sm:text-3xl lg:text-4xl">Encuentra lo que buscas</h1>
         <p className="mt-1.5 text-sm text-ink-500 sm:text-base">Busca productos disponibles en las tiendas del grupo.</p>

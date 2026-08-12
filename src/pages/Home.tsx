@@ -5,19 +5,18 @@ import { KelderCard } from "@/components/ui/KelderCard";
 import { CreditoVadesResumen } from "@/components/ui/CreditoVadesResumen";
 import { CreditoKelderCard } from "@/components/ui/CreditoKelderCard";
 import { OrderInProgress } from "@/components/ui/OrderInProgress";
-import { ProductCard } from "@/components/ui/ProductCard";
 import { PromoBanner } from "@/components/ui/PromoBanner";
 import { MarcasMarquee } from "@/components/ui/MarcasMarquee";
-import { StorePreview } from "@/components/ui/StorePreview";
+import { StoreContextModule } from "@/components/ui/StoreContextModule";
 import { QRModal } from "@/components/modals/QRModal";
 import { RedeemFlow } from "@/components/modals/RedeemFlow";
+import { track } from "@/lib/analytics";
 import {
-  tiendaCercana,
   campaniaDestacada,
   pedidoActivo,
-  recomendaciones,
   user,
   perfilDemo,
+  formatMXN,
   type ClientProfile,
 } from "@/lib/mock-data";
 
@@ -35,7 +34,7 @@ export function Home({ profile = perfilDemo }: { profile?: ClientProfile }) {
         <h1 className="mt-1 text-3xl font-semibold tracking-tight text-ink-900 sm:text-4xl">Hola, {user.nombre}</h1>
       </header>
 
-      {/* 1 · Cashback hero — the only dark/red surface on the page */}
+      {/* 1 · Cashback hero — compact on mobile. Paying with QR lives in the central Pagar action. */}
       <div className="mt-6">
         <KelderCard
           cashback={profile.cashback}
@@ -46,18 +45,34 @@ export function Home({ profile = perfilDemo }: { profile?: ClientProfile }) {
         />
       </div>
 
-      {/* Business units — compact recognition strip, right under the hero */}
+      {/* Cashback → catalog bridge: make the balance actionable, not just a number */}
+      <button
+        onClick={() => {
+          track("cashback_product_click", { cashback: profile.cashback });
+          navigate("/catalogo");
+        }}
+        className="mt-3 flex w-full items-center justify-between rounded-2xl border border-ink-100 bg-white px-4 py-3 text-left shadow-soft"
+      >
+        <span className="text-sm text-ink-700">
+          Tienes <span className="font-semibold text-ink-900">{formatMXN(profile.cashback)}</span> de cashback
+        </span>
+        <span className="inline-flex shrink-0 items-center gap-1 text-sm font-semibold text-kelder-600">
+          Ver qué puedo comprar
+          <ArrowRight size={15} aria-hidden="true" />
+        </span>
+      </button>
+
+      {/* Business units — compact recognition strip */}
       <div className="mt-7">
         <MarcasMarquee onSelect={() => navigate("/buscar")} />
       </div>
 
-      {/* 2 · Crédito y vales — the Home only RESUMES and DIRECTS into the dedicated tab.
-          When the member has neither product, a single compact invitation instead. */}
+      {/* 2 · Crédito y vales — Home only RESUMES and DIRECTS into the dedicated tab */}
       <div className="mt-8">
         {profile.credito === "no_miembro" ? (
           <CreditoKelderCard onConocer={() => navigate("/vales")} />
         ) : (
-          <CreditoVadesResumen onVer={() => navigate("/vales")} />
+          <CreditoVadesResumen onVer={() => navigate("/vales")} onDescubrir={() => navigate("/catalogo")} />
         )}
       </div>
 
@@ -68,32 +83,14 @@ export function Home({ profile = perfilDemo }: { profile?: ClientProfile }) {
         </div>
       )}
 
-      {/* 4 · Recommended — horizontal swipe carousel on mobile, 4-up grid on desktop */}
-      <section className="mt-12 lg:mt-14" aria-label="Recomendados para ti">
-        <div className="mb-4 flex items-center justify-between lg:mb-5">
-          <h2 className="text-lg font-semibold text-ink-900">Recomendados para ti</h2>
-          <button onClick={() => navigate("/buscar")} className="inline-flex items-center gap-1 text-sm font-semibold text-kelder-600">
-            Explorar productos
-            <ArrowRight size={15} aria-hidden="true" />
-          </button>
-        </div>
-        <div className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:gap-4 sm:px-0 lg:grid lg:grid-cols-4 lg:gap-5 lg:overflow-visible [&::-webkit-scrollbar]:hidden">
-          {recomendaciones.slice(0, 4).map((p) => (
-            <div key={p.id} className="w-[58%] min-w-[168px] max-w-[210px] shrink-0 snap-start sm:w-[46%] sm:max-w-none lg:w-auto lg:min-w-0">
-              <ProductCard producto={p} onClick={() => navigate(`/producto/${p.id}`)} />
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* 5 · Featured campaign — light, photographic, launch theme */}
-      <div className="mt-8 lg:mt-10">
-        <PromoBanner campania={campaniaDestacada} onClick={() => navigate("/buscar")} />
+      {/* 4 · Store-driven discovery — HOME → PRODUCTO → TIENDA → VISITA */}
+      <div className="mt-12 lg:mt-14">
+        <StoreContextModule />
       </div>
 
-      {/* 6 · Nearest store */}
-      <div className="mt-10 lg:mt-16">
-        <StorePreview tienda={tiendaCercana} onDirections={() => navigate("/tiendas")} onVerTodas={() => navigate("/tiendas")} />
+      {/* 5 · Featured campaign — light, photographic, launch theme */}
+      <div className="mt-10 lg:mt-12">
+        <PromoBanner campania={campaniaDestacada} onClick={() => navigate("/promociones")} />
       </div>
 
       {modal === "qr" && <QRModal onClose={() => setModal(null)} />}
