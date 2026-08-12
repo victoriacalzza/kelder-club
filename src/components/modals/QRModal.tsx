@@ -35,10 +35,11 @@ export function QRModal({ onClose }: { onClose: () => void }) {
 
   return (
     <Sheet title="Paga con tu cashback" description="Muéstralo en caja antes de pagar." onClose={onClose}>
-      {/* Saldo disponible — the amount the member can use */}
-      <div className="mb-4 rounded-2xl bg-kelder-50 p-4 text-center">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-kelder-700/80">Saldo disponible</p>
-        <p className="mt-0.5 text-3xl font-semibold tracking-tight text-kelder-700">{formatMXN(cuenta.cashbackDisponible)}</p>
+      {/* Saldo disponible — positive money in the member's favor, so GREEN (never Kelder red,
+          which could read as debt/insufficient). Red stays for branding, CTAs and selection. */}
+      <div className="mb-4 rounded-2xl bg-success-50 p-4 text-center">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-success-700/90">Saldo disponible</p>
+        <p className="mt-0.5 text-3xl font-semibold tracking-tight text-success-700">{formatMXN(cuenta.cashbackDisponible)}</p>
       </div>
 
       {/* Códigos: QR + barras + numérico */}
