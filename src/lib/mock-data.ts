@@ -809,6 +809,16 @@ export function tiendaPorId(id?: string): Tienda | undefined {
   return sucursales.find((t) => t.id === id);
 }
 
+// In-store services shown in the "Información" tab. Varies by unit so a store only lists what it
+// actually offers (larger units add in-store extended-catalog ordering; kids stores carry less).
+export function serviciosDeTienda(id: string): string[] {
+  const t = tiendaPorId(id);
+  const base = ["Crédito Kelder", "CrediVale", "Pago con cashback", "Cambios y devoluciones"];
+  if (t?.unidad === "Calzzapato" || t?.unidad === "Kelder") return [...base, "Catálogo extendido"];
+  if (t?.unidad === "CalzaKids") return ["Crédito Kelder", "Pago con cashback", "Cambios y devoluciones"];
+  return base;
+}
+
 // ─────────────────────────── Promociones vigentes (ofertas comerciales) ───────────────────────────
 // Promociones ≠ Beneficios. These are current commercial offers meant to generate store visits.
 export type PromoLabel = "Exclusivo en tienda" | "Disponible en tienda";

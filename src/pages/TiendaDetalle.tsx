@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { MapPin, Clock, ArrowUpRight, Phone, Star, Check, Store } from "lucide-react";
+import { MapPin, Clock, ArrowUpRight, Phone, Star, Check } from "lucide-react";
 import { BackButton } from "@/components/layout/BackButton";
 import { ProductPeekCard } from "@/components/ui/ProductPeekCard";
 import { PromoCard } from "@/components/ui/PromoCard";
@@ -9,6 +9,7 @@ import {
   novedadesDeTienda,
   promocionesDeTienda,
   comercialDeTienda,
+  serviciosDeTienda,
   logoDeUnidad,
 } from "@/lib/mock-data";
 import { useClub } from "@/lib/ClubContext";
@@ -16,14 +17,19 @@ import { track } from "@/lib/analytics";
 
 type Tab = "productos" | "promociones" | "informacion";
 
-// "9:00 – 21:00" → "9:00 PM"
-function cierre12h(horario: string): string | null {
-  const end = horario.split("–").pop()?.trim();
-  const m = end?.match(/^(\d{1,2}):(\d{2})$/);
-  if (!m) return null;
+// "9:00" → "9:00 AM" · "21:00" → "9:00 PM"
+function to12h(hhmm: string): string {
+  const m = hhmm.trim().match(/^(\d{1,2}):(\d{2})$/);
+  if (!m) return hhmm.trim();
   const h = Number(m[1]);
   return `${h % 12 === 0 ? 12 : h % 12}:${m[2]} ${h >= 12 ? "PM" : "AM"}`;
 }
+// "9:00 – 21:00" → "9:00 AM – 9:00 PM"
+function horarioLegible(horario: string): string {
+  const [a, b] = horario.split("–").map((s) => s.trim());
+  return b ? `${to12h(a)} – ${to12h(b)}` : to12h(a);
+}
+const diasSemana = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
 
 /**
  * Store detail — much more than a locator. A store owns its page: commercial headline (promos,
@@ -50,7 +56,9 @@ export function TiendaDetalle() {
     );
   }
 
-  const cierre = cierre12h(tienda.horario);
+  const cierre = to12h(tienda.horario.split("–").pop()?.trim() ?? "");
+  const servicios = serviciosDeTienda(tienda.id);
+  const [verSemanal, setVerSemanal] = useState(false);
   const { promociones: nPromos, novedades: nNovedades } = comercialDeTienda(tienda.id);
   const productos = novedadesDeTienda(tienda.id);
   const promos = promocionesDeTienda(tienda.id);
@@ -94,9 +102,15 @@ export function TiendaDetalle() {
         </span>
       </p>
 
-      {/* commercial counts */}
+      {/* commercial counts — interactive, they jump to the matching tab instead of adding buttons */}
       <p className="mt-2 text-sm text-ink-600">
-        <span className="font-semibold text-ink-900">{nPromos} promociones activas</span> · {nNovedades} novedades
+        <button onClick={() => setTab("promociones")} className="font-semibold text-ink-900 underline-offset-2 hover:underline">
+          {nPromos} promociones activas
+        </button>
+        {" · "}
+        <button onClick={() => setTab("productos")} className="underline-offset-2 hover:underline">
+          {nNovedades} novedades
+        </button>
       </p>
 
       {/* actions */}
@@ -168,44 +182,72 @@ export function TiendaDetalle() {
           ))}
 
         {tab === "informacion" && (
-          <div className="space-y-4">
-            <InfoRow icon={<MapPin size={18} aria-hidden="true" />} label="Dirección">
-              Plaza principal, {tienda.ciudad}
-            </InfoRow>
-            <InfoRow icon={<Clock size={18} aria-hidden="true" />} label="Horario">
-              Todos los días · {tienda.horario}
-            </InfoRow>
-            <InfoRow icon={<Phone size={18} aria-hidden="true" />} label="Teléfono">
-              669 000 0000
-            </InfoRow>
-            {/* map placeholder — real map integration comes later */}
-            <div className="flex h-40 w-full items-center justify-center rounded-2xl border border-ink-100 bg-ink-50 text-ink-400">
-              <span className="inline-flex items-center gap-2 text-sm">
-                <Store size={16} aria-hidden="true" />
-                Mapa de ubicación
-              </span>
+          <div className="space-y-6">
+            <h2 className="text-base font-semibold text-ink-900">Información de la sucursal</h2>
+
+            {/* Horario */}
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-ink-400">Horario</p>
+              <p className="mt-1 text-[15px] text-ink-900">Hoy · {horarioLegible(tienda.horario)}</p>
+              <button onClick={() => setVerSemanal((v) => !v)} className="mt-1.5 text-sm font-semibold text-kelder-600">
+                {verSemanal ? "Ocultar horario semanal" : "Ver horario semanal"}
+              </button>
+              {verSemanal && (
+                <ul className="mt-3 divide-y divide-ink-100 rounded-2xl border border-ink-100">
+                  {diasSemana.map((d) => (
+                    <li key={d} className="flex items-center justify-between px-4 py-2.5 text-sm">
+                      <span className="text-ink-600">{d}</span>
+                      <span className="text-ink-900">{d === "Domingo" ? "10:00 AM – 8:00 PM" : horarioLegible(tienda.horario)}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
-            <button
-              onClick={() => track("directions_click", { tienda: tienda.id })}
-              className="inline-flex min-h-[44px] items-center gap-1.5 text-sm font-semibold text-kelder-600"
-            >
-              Cómo llegar
-              <ArrowUpRight size={15} aria-hidden="true" />
-            </button>
+
+            {/* Teléfono */}
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-ink-400">Teléfono</p>
+              <p className="mt-1 text-[15px] text-ink-900">669 000 0000</p>
+              <a href="tel:6690000000" onClick={() => track("call_store", { tienda: tienda.id })} className="mt-1.5 inline-flex items-center gap-1.5 text-sm font-semibold text-kelder-600">
+                <Phone size={15} aria-hidden="true" />
+                Llamar
+              </a>
+            </div>
+
+            {/* Servicios disponibles */}
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-ink-400">Servicios disponibles</p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {servicios.map((s) => (
+                  <span key={s} className="inline-flex items-center gap-1.5 rounded-full border border-ink-200 bg-white px-3 py-1.5 text-sm font-medium text-ink-700">
+                    <Check size={14} className="text-success-600" aria-hidden="true" />
+                    {s}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* Ubicación — compact preview that opens the location; no big "Cómo llegar" (it's in the header) */}
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-ink-400">Ubicación</p>
+              <p className="mt-1 text-[15px] text-ink-900">Plaza principal, {tienda.ciudad}</p>
+              <button
+                onClick={() => track("directions_click", { tienda: tienda.id })}
+                className="mt-2 flex w-full items-center gap-3 rounded-2xl border border-ink-100 bg-white p-3 text-left transition-colors hover:bg-ink-50"
+              >
+                <span className="relative flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-ink-100 to-ink-200">
+                  <span className="absolute inset-0 opacity-40" style={{ backgroundImage: "linear-gradient(90deg, transparent 46%, #fff 47%, #fff 53%, transparent 54%), linear-gradient(0deg, transparent 46%, #fff 47%, #fff 53%, transparent 54%)" }} aria-hidden="true" />
+                  <MapPin size={20} className="relative text-kelder-600" aria-hidden="true" />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block text-[15px] font-medium text-ink-900">Ver ubicación en el mapa</span>
+                  <span className="block text-xs text-ink-400">Abrir cómo llegar</span>
+                </span>
+                <ArrowUpRight size={16} className="text-ink-400" aria-hidden="true" />
+              </button>
+            </div>
           </div>
         )}
-      </div>
-    </div>
-  );
-}
-
-function InfoRow({ icon, label, children }: { icon: React.ReactNode; label: string; children: React.ReactNode }) {
-  return (
-    <div className="flex items-start gap-3">
-      <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-ink-50 text-ink-600">{icon}</span>
-      <div>
-        <p className="text-xs font-semibold uppercase tracking-wide text-ink-400">{label}</p>
-        <p className="text-[15px] text-ink-900">{children}</p>
       </div>
     </div>
   );
