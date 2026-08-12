@@ -12,24 +12,36 @@ import { CrediValesEmpty } from "@/components/ui/CrediValesEmpty";
 import { CreditoKelderCard } from "@/components/ui/CreditoKelderCard";
 import { vales as valesDefault, creditoKelder, resumenCrediVales, formatMXN, type Vale } from "@/lib/mock-data";
 
-type Tab = "disponibles" | "en_pago" | "extravales" | "vencidos";
-const estadoDeTab: Record<Tab, Vale["estado"]> = {
-  disponibles: "disponible",
-  en_pago: "en_pago",
-  extravales: "extravale",
-  vencidos: "vencido",
-};
-const tabs: { key: Tab; label: string }[] = [
+// Main CrediVale navigation prioritizes what the member can act on NOW; the history is secondary,
+// on demand. Disponibles = UNUSED (usable), En pago = USED (quincenal payments), Historial =
+// everything past/non-actionable (vencidos, utilizados, extravales), filtered by chips inside.
+type MainTab = "disponibles" | "en_pago" | "historial";
+type HistFiltro = "todos" | "vencidos" | "utilizados" | "extravales";
+// Legacy tab values (older storyboards) map onto the new structure.
+type InitialTab = MainTab | "extravales" | "vencidos";
+
+const mainTabs: { key: MainTab; label: string }[] = [
   { key: "disponibles", label: "Disponibles" },
   { key: "en_pago", label: "En pago" },
-  { key: "extravales", label: "Extravales" },
-  { key: "vencidos", label: "Vencidos" },
+  { key: "historial", label: "Historial" },
 ];
+const histChips: { key: HistFiltro; label: string; estados: Vale["estado"][] }[] = [
+  { key: "todos", label: "Todos", estados: ["vencido", "utilizado", "extravale"] },
+  { key: "vencidos", label: "Vencidos", estados: ["vencido"] },
+  { key: "utilizados", label: "Utilizados", estados: ["utilizado"] },
+  { key: "extravales", label: "Extravales", estados: ["extravale"] },
+];
+
+function mapInitial(t: InitialTab): { tab: MainTab; hist: HistFiltro } {
+  if (t === "extravales") return { tab: "historial", hist: "extravales" };
+  if (t === "vencidos") return { tab: "historial", hist: "vencidos" };
+  return { tab: t, hist: "todos" };
+}
 
 /**
  * Crédito Kelder and CrediVale are DIFFERENT, independent products. This screen keeps them
- * in two separate blocks. Within CrediVales the tabs mean different things: Disponibles are
- * UNUSED (no payments), En pago are USED (quincenal payments), Vencidos expired unused.
+ * in two separate blocks. The screen leads with what's actionable (Disponibles / En pago);
+ * the past lives behind "Historial" so it never pushes current items down the scroll.
  */
 export function Vales({
   vales = valesDefault,
@@ -38,12 +50,21 @@ export function Vales({
 }: {
   vales?: Vale[];
   tieneCredito?: boolean;
-  initialTab?: Tab;
+  initialTab?: InitialTab;
 }) {
   const navigate = useNavigate();
-  const [tab, setTab] = useState<Tab>(initialTab);
-  const cuenta = (t: Tab) => vales.filter((v) => v.estado === estadoDeTab[t]).length;
-  const lista = vales.filter((v) => v.estado === estadoDeTab[tab]);
+  const init = mapInitial(initialTab);
+  const [tab, setTab] = useState<MainTab>(init.tab);
+  const [hist, setHist] = useState<HistFiltro>(init.hist);
+
+  const countDisponibles = vales.filter((v) => v.estado === "disponible").length;
+  const countEnPago = vales.filter((v) => v.estado === "en_pago").length;
+  const disponiblesList = vales.filter((v) => v.estado === "disponible");
+  const enPagoList = vales.filter((v) => v.estado === "en_pago");
+  const histEstados = histChips.find((c) => c.key === hist)!.estados;
+  const histList = vales.filter((v) => histEstados.includes(v.estado));
+  const cuentaTab: Record<MainTab, number | null> = { disponibles: countDisponibles, en_pago: countEnPago, historial: null };
+
   const sinNada = !tieneCredito && vales.length === 0; // discovery state
 
   return (
@@ -78,9 +99,9 @@ export function Vales({
             <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-ink-500">Mis CrediVales</h2>
             <p className="mb-4 mt-1 text-sm text-ink-500">Consulta tus vales, el saldo disponible y los pagos asociados a cada mayorista.</p>
 
-            {/* tabs with counts */}
+            {/* primary tabs — lead with what's actionable; Historial holds the past */}
             <div className="mb-6 inline-flex max-w-full items-center gap-1 overflow-x-auto rounded-full border border-ink-100 bg-white p-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              {tabs.map((t) => (
+              {mainTabs.map((t) => (
                 <button
                   key={t.key}
                   onClick={() => setTab(t.key)}
@@ -88,46 +109,79 @@ export function Vales({
                     tab === t.key ? "bg-kelder-600 text-white" : "text-ink-500 hover:text-ink-900"
                   }`}
                 >
-                  {t.label} <span className={tab === t.key ? "text-white/80" : "text-ink-400"}>({cuenta(t.key)})</span>
+                  {t.label}
+                  {cuentaTab[t.key] !== null && (
+                    <span className={tab === t.key ? "text-white/80" : "text-ink-400"}> ({cuentaTab[t.key]})</span>
+                  )}
                 </button>
               ))}
             </div>
 
-            {lista.length === 0 ? (
-              <p className="rounded-2xl border border-ink-100 bg-white px-5 py-8 text-center text-sm text-ink-500">
-                No tienes CrediVales en esta sección.
-              </p>
-            ) : tab === "disponibles" ? (
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {lista.map((v) => (
-                  <CrediValeDisponibleCard key={v.id} vale={v} onClick={() => navigate(`/vales/${v.id}`)} />
-                ))}
-              </div>
-            ) : tab === "vencidos" ? (
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {lista.map((v) => (
-                  <CrediValeVencidoCard key={v.id} vale={v} onClick={() => navigate(`/vales/${v.id}`)} />
-                ))}
-              </div>
-            ) : tab === "extravales" ? (
-              <>
-                <p className="mb-4 max-w-2xl text-sm text-ink-500">
-                  Saldo que te sobró de un CrediVale que ya utilizaste. Sigue disponible para que lo uses cuando quieras.
-                </p>
-                {/* máximo 2 por fila en desktop */}
-                <div className="grid gap-4 sm:grid-cols-2">
-                  {lista.map((v) => (
-                    <ExtravaleCard key={v.id} vale={v} onClick={() => navigate(`/vales/${v.id}`)} />
+            {/* content is swapped in place per tab — no long scroll to reach another category */}
+            {tab === "disponibles" ? (
+              disponiblesList.length === 0 ? (
+                <EmptyRow>No tienes CrediVales disponibles por ahora.</EmptyRow>
+              ) : (
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {disponiblesList.map((v) => (
+                    <CrediValeDisponibleCard key={v.id} vale={v} onClick={() => navigate(`/vales/${v.id}`)} />
                   ))}
                 </div>
-              </>
+              )
+            ) : tab === "en_pago" ? (
+              enPagoList.length === 0 ? (
+                <EmptyRow>No tienes CrediVales en pago.</EmptyRow>
+              ) : (
+                <EnPago lista={enPagoList} onOpen={(id) => navigate(`/vales/${id}`)} />
+              )
             ) : (
-              <EnPago lista={lista} onOpen={(id) => navigate(`/vales/${id}`)} />
+              /* Historial — secondary sub-filters, then the filtered list */
+              <div>
+                <div className="mb-5 flex flex-wrap gap-2">
+                  {histChips.map((c) => (
+                    <button
+                      key={c.key}
+                      onClick={() => setHist(c.key)}
+                      className={`min-h-[36px] rounded-full border px-3.5 text-sm font-medium transition-colors ${
+                        hist === c.key ? "border-kelder-600 bg-kelder-50 text-kelder-700" : "border-ink-200 text-ink-600 hover:bg-ink-50"
+                      }`}
+                    >
+                      {c.label}
+                    </button>
+                  ))}
+                </div>
+
+                {hist === "extravales" && histList.length > 0 && (
+                  <p className="mb-4 max-w-2xl text-sm text-ink-500">
+                    Saldo que te sobró de un CrediVale que ya utilizaste. Sigue disponible para que lo uses cuando quieras.
+                  </p>
+                )}
+
+                {histList.length === 0 ? (
+                  <EmptyRow>No tienes CrediVales en esta categoría.</EmptyRow>
+                ) : (
+                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    {histList.map((v) =>
+                      v.estado === "extravale" ? (
+                        <ExtravaleCard key={v.id} vale={v} onClick={() => navigate(`/vales/${v.id}`)} />
+                      ) : (
+                        <CrediValeVencidoCard key={v.id} vale={v} onClick={() => navigate(`/vales/${v.id}`)} />
+                      ),
+                    )}
+                  </div>
+                )}
+              </div>
             )}
           </>
         )}
       </section>
     </div>
+  );
+}
+
+function EmptyRow({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="rounded-2xl border border-ink-100 bg-white px-5 py-8 text-center text-sm text-ink-500">{children}</p>
   );
 }
 

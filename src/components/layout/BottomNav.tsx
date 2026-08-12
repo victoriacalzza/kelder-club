@@ -1,5 +1,8 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { Home, Wallet, Store, Sparkles, QrCode } from "lucide-react";
+import { Home, Wallet, Store, Sparkles } from "lucide-react";
+// Official Kelder "K" (white, isolated). Swap this single import for the brand's dedicated
+// white-K asset if/when one is provided — the FAB renders whatever this points to.
+import kelderK from "../../assets/logos/kelder-k.png";
 
 /**
  * Mobile bottom navigation (hidden on desktop, where the top nav stays). Inicio · Crédito y
@@ -56,14 +59,15 @@ export function BottomNav({ onPagar }: { onPagar: () => void }) {
           <Tab tab={tiendas} />
           <Tab tab={club} />
 
-          {/* Center Pagar FAB — elevated, primary action */}
+          {/* Center Pagar FAB — brand identity (Kelder K), elevated primary action. The QR itself
+              lives inside the Pagar sheet, not on the button. */}
           <button
             onClick={onPagar}
             aria-label="Pagar con cashback"
             className="absolute left-1/2 top-0 z-10 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center"
           >
-            <span className="lift flex h-14 w-14 items-center justify-center rounded-full bg-kelder-600 text-white shadow-card ring-[6px] ring-cream">
-              <QrCode size={26} aria-hidden="true" />
+            <span className="lift flex h-14 w-14 items-center justify-center rounded-full bg-kelder-600 shadow-card ring-[6px] ring-cream">
+              <img src={kelderK} alt="" aria-hidden="true" className="h-7 w-7 object-contain" />
             </span>
           </button>
           <span className="pointer-events-none absolute bottom-1.5 left-1/2 -translate-x-1/2 text-[11px] font-semibold text-kelder-700">

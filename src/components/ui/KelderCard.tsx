@@ -1,12 +1,12 @@
-import { QrCode, CreditCard, Store } from "lucide-react";
+import { QrCode, CreditCard, Store, ArrowRight } from "lucide-react";
 import { cuenta, formatMXN } from "@/lib/mock-data";
-import heroShoe from "../../assets/hero-producto.png";
 
 /**
- * The cashback hero — block 1 and the single heaviest element of the Home. It is the
- * ONLY surface allowed a red tint, and even here it is mostly black (Amex Black feel):
- * a deep, desaturated red glow is concentrated in the lower-left, behind the amount.
- * The right half is a photo slot (real product photography, e.g. /hero-shoe.png).
+ * The cashback hero — block 1 and the heaviest element of the Home, styled like a premium
+ * wallet/rewards card (not a promo banner). It is the ONLY surface allowed a red tint, and even
+ * here it is mostly black (Amex Black feel): a deep, desaturated red glow in the lower-left,
+ * behind the amount. It carries NO product photography — cashback is category-agnostic and must
+ * stay timeless; the only decoration is an extremely subtle abstract light bloom top-right.
  * The canvas for this component is at tempo/designs/design-system/primitives/index.canvas.tsx.
  * If you adjust this component in any way, ensure the canvas and its asset declaration stay consistent.
  */
@@ -31,14 +31,12 @@ export function KelderCard({ cashback, onShowQR, onUse, onStart, onComprar }: Ke
           "radial-gradient(90% 100% at 8% 92%, rgba(122,16,32,0.60) 0%, rgba(15,13,19,0) 55%), linear-gradient(160deg, #1a1720 0%, #100e15 100%)",
       }}
     >
-      {/* product — compact top-right on mobile (clear of the copy and the actions), full
-          editorial composition on desktop. */}
-      <img
-        src={heroShoe}
-        alt="Tenis Kelder Club"
+      {/* subtle abstract light bloom (top-right) — balances the space left by removing product
+          photography, without competing with the amount. Extremely low opacity, brand-neutral. */}
+      <div
         aria-hidden="true"
-        className="pointer-events-none absolute right-1 top-3 h-[42%] w-[34%] max-w-[136px] rotate-[-6deg] object-contain object-right lg:right-[-1.5rem] lg:top-[60%] lg:h-[104%] lg:w-[55%] lg:max-w-[660px] lg:-translate-y-1/2 lg:rotate-[-5deg]"
-        style={{ filter: "drop-shadow(0 24px 38px rgba(0,0,0,0.5))" }}
+        className="pointer-events-none absolute -right-10 -top-10 h-44 w-44 rounded-full"
+        style={{ background: "radial-gradient(circle, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0) 70%)" }}
       />
 
       <div className="relative p-5 sm:p-6 lg:p-10">
@@ -51,7 +49,7 @@ export function KelderCard({ cashback, onShowQR, onUse, onStart, onComprar }: Ke
                 <span className="text-5xl font-semibold leading-none tracking-tight">{formatMXN(cashback)}</span>
                 <span className="text-sm text-white/70">disponibles</span>
               </p>
-              <div className="mt-4 max-w-[260px]">
+              <div className="mt-5 max-w-[280px]">
                 <p className="text-[13px] leading-snug text-white/70">
                   Te faltan <span className="font-semibold text-white">{formatMXN(faltan)}</span> para tu próxima recompensa
                 </p>
@@ -59,19 +57,22 @@ export function KelderCard({ cashback, onShowQR, onUse, onStart, onComprar }: Ke
                   <div className="h-full rounded-full bg-white" style={{ width: `${progreso}%` }} />
                 </div>
               </div>
-              <div className="mt-4 flex gap-2.5">
+              {/* Primary commercial action — full width, single line. Redeem online is a discreet
+                  secondary link below (no second big button competing on the same row). */}
+              <div className="mt-6">
                 <button
                   onClick={onComprar}
-                  className="flex min-h-[44px] flex-[1.4] items-center justify-center gap-1.5 rounded-full bg-white px-3 text-[14px] font-semibold text-ink-950 hover:bg-white/90"
+                  className="flex min-h-[48px] w-full items-center justify-center gap-2 whitespace-nowrap rounded-full bg-white text-[15px] font-semibold text-ink-950 hover:bg-white/90"
                 >
-                  <Store size={16} aria-hidden="true" />
+                  <Store size={17} aria-hidden="true" />
                   Ver qué puedo comprar
                 </button>
                 <button
                   onClick={onUse}
-                  className="flex min-h-[44px] flex-1 items-center justify-center rounded-full border border-white/15 bg-white/[0.06] text-[14px] font-semibold text-white hover:bg-white/[0.12]"
+                  className="mx-auto mt-3 flex min-h-[36px] items-center justify-center gap-1 text-[13px] font-medium text-white/70 hover:text-white"
                 >
                   Canjear en línea
+                  <ArrowRight size={14} aria-hidden="true" />
                 </button>
               </div>
             </div>

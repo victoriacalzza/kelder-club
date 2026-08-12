@@ -13,6 +13,8 @@ const config: Record<ValeEstado, { label: string; icon: typeof Check; className:
   // Extravale is available money → the badge reads "Disponible" (green), like an unused voucher.
   extravale: { label: "Disponible", icon: Check, className: "bg-success-100 text-success-600" },
   vencido: { label: "Vencido", icon: XCircle, className: "bg-ink-100 text-ink-500" },
+  // Utilizado = fully used/completed CrediVale → neutral, like an archived item.
+  utilizado: { label: "Utilizado", icon: Check, className: "bg-ink-100 text-ink-500" },
 };
 
 export function StatusPill({ estado }: { estado: ValeEstado }) {

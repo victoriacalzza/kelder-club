@@ -1,7 +1,7 @@
 // DISPONIBLE (unused — no payments), EN PAGO (used — paid every quincena), EXTRAVALE (leftover
 // AVAILABLE balance from a used CrediVale — NOT a debt), or VENCIDO (expired unused). These drive
 // the "Mis CrediVales" tabs.
-export type ValeEstado = "disponible" | "en_pago" | "extravale" | "vencido";
+export type ValeEstado = "disponible" | "en_pago" | "extravale" | "vencido" | "utilizado";
 export type ValeTipo = "vale" | "credivale";
 
 export interface ValeMovimiento {

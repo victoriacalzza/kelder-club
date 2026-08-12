@@ -59,7 +59,9 @@
   body,
   #root {
     max-width: 100%;
-    overflow-x: hidden;
+    /* `clip` (not `hidden`) prevents horizontal overflow WITHOUT turning these into scroll
+       containers — that's what keeps the sticky header pinned to the viewport on scroll. */
+    overflow-x: clip;
   }
 
   body {

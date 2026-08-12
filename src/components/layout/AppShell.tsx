@@ -12,7 +12,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [pagarOpen, setPagarOpen] = useState(false);
 
   return (
-    <div className="min-h-screen w-full overflow-x-hidden bg-cream">
+    <div className="min-h-screen w-full overflow-x-clip bg-cream">
       <TopNav />
       <main className="mx-auto w-full max-w-6xl px-4 pt-6 pb-[calc(6.5rem+env(safe-area-inset-bottom))] sm:px-6 md:pt-8 lg:px-8 lg:pb-10 lg:pt-10">
         {children}
