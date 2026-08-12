@@ -1,13 +1,13 @@
 import { MemoryRouter, Routes, Route } from "react-router-dom";
 import { AppShell } from "@/components/layout/AppShell";
-import { Catalogo } from "@/pages/Catalogo";
+import { AprovechaCashback } from "@/pages/AprovechaCashback";
 
 export default function MobileCatalogoCashbackStoryboard() {
   return (
-    <MemoryRouter initialEntries={[{ pathname: "/catalogo", search: "?contexto=cashback" }]}>
+    <MemoryRouter initialEntries={["/aprovecha-cashback"]}>
       <AppShell>
         <Routes>
-          <Route path="/catalogo" element={<Catalogo />} />
+          <Route path="/aprovecha-cashback" element={<AprovechaCashback />} />
         </Routes>
       </AppShell>
     </MemoryRouter>

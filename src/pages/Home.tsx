@@ -42,7 +42,7 @@ export function Home({ profile = perfilDemo }: { profile?: ClientProfile }) {
           onStart={() => navigate("/tiendas")}
           onComprar={() => {
             track("cashback_product_click", { cashback: profile.cashback });
-            navigate("/catalogo?contexto=cashback");
+            navigate("/aprovecha-cashback");
           }}
         />
       </div>

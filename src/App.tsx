@@ -16,6 +16,7 @@ import { Club } from "@/pages/Club";
 import { Proximamente } from "@/pages/Proximamente";
 import { Buscar } from "@/pages/Buscar";
 import { Catalogo } from "@/pages/Catalogo";
+import { AprovechaCashback } from "@/pages/AprovechaCashback";
 import { ProductoDetalle } from "@/pages/ProductoDetalle";
 import { Promociones } from "@/pages/Promociones";
 import { PromocionDetalle } from "@/pages/PromocionDetalle";
@@ -44,6 +45,7 @@ export default function App() {
             <Route path="/proximamente/:slug" element={<Proximamente />} />
             <Route path="/buscar" element={<Buscar />} />
             <Route path="/catalogo" element={<Catalogo />} />
+            <Route path="/aprovecha-cashback" element={<AprovechaCashback />} />
             <Route path="/producto/:id" element={<ProductoDetalle />} />
             <Route path="/promociones" element={<Promociones />} />
             <Route path="/promocion/:id" element={<PromocionDetalle />} />

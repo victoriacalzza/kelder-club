@@ -12,6 +12,7 @@ import {
   disponibilidadDeProducto,
   tiendaDeProductoCercana,
   availabilityForStore,
+  cashbackItemPorId,
   type Producto,
 } from "@/lib/mock-data";
 import { useClub } from "@/lib/ClubContext";
@@ -21,7 +22,7 @@ import { track } from "@/lib/analytics";
 export function ProductoDetalle({ producto: prodProp }: { producto?: Producto }) {
   const { id } = useParams();
   const navigate = useNavigate();
-  const producto = prodProp ?? catalogo.find((p) => p.id === id) ?? catalogo[0];
+  const producto = prodProp ?? catalogo.find((p) => p.id === id) ?? cashbackItemPorId(id) ?? catalogo[0];
   const [talla, setTalla] = useState<string | null>(null);
   const dispRef = useRef<HTMLDivElement>(null);
   const { esFavorito, toggleFavorito, enVisita, toggleVisita } = useClub();

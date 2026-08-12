@@ -881,3 +881,21 @@ export function catalogoExtendidoDeTienda(storeId: string): Producto[] {
 export function cashbackEligibleEnTienda(storeId: string): Producto[] {
   return productosDeTienda(storeId).slice().sort((a, b) => a.precio - b.precio);
 }
+
+// Low-price items surfaced ONLY in the "Aprovecha tu cashback" screen (kept OUT of the global
+// `catalogo`, so every other surface stays unchanged). They give the "Me alcanza" tier real,
+// navigable products the member can take home fully with $245 of cashback.
+export const cashbackExtras: Producto[] = [
+  { id: "cb1", marca: "Urbanna", modelo: "Gorra Snapback", precio: 199, categoria: "Accesorios", color: "Negro", tallasRopa: ["Única"], tiendas: 5, departamento: "Hombre", tipo: "Accesorios", unidad: "Urbanna", disponible: true, orden: 3 },
+  { id: "cb2", marca: "Nike", modelo: "Calcetas Everyday (3 pares)", precio: 189, categoria: "Accesorios", color: "Blanco", tallasRopa: ["Única"], tiendas: 6, departamento: "Hombre", tipo: "Accesorios", unidad: "Calzzapato", disponible: true, orden: 2 },
+  { id: "cb3", marca: "Kelder", modelo: "Botella deportiva 750 ml", precio: 149, categoria: "Accesorios", color: "Negro", tallasRopa: ["Única"], tiendas: 4, departamento: "Mujer", tipo: "Accesorios", unidad: "Kelder", disponible: true, orden: 1 },
+];
+export function cashbackItemPorId(id?: string): Producto | undefined {
+  return cashbackExtras.find((p) => p.id === id);
+}
+
+/** Everything the member could buy at a store using their cashback: store inventory + low-price
+ *  extras, cheapest first. Some are fully covered ("me alcanza"), the rest partially. */
+export function cashbackShoppablesEnTienda(storeId: string): Producto[] {
+  return [...cashbackExtras, ...productosDeTienda(storeId)].sort((a, b) => a.precio - b.precio);
+}
