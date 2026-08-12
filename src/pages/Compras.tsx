@@ -4,6 +4,7 @@ import { Truck, Package, PackageCheck, Check, X, ArrowRight, SlidersHorizontal, 
 import { TopBar } from "@/components/layout/TopBar";
 import { BackButton } from "@/components/layout/BackButton";
 import { Sheet } from "@/components/ui/Sheet";
+import { useTiendaContexto } from "@/lib/useTiendaContexto";
 import {
   compras,
   resumenCompras,
@@ -17,9 +18,14 @@ import {
 
 const canalLabel: Record<CompraCanal, string> = { tienda: "Compra en tienda", linea: "Pedido en línea" };
 
-// Normalized status used by the top chips (in-store purchases count as delivered).
+// Normalized status (in-store purchases count as delivered).
 type Estatus = "todas" | "en_proceso" | "en_camino" | "listas" | "entregadas" | "canceladas";
-const estatusChips: { key: Estatus; label: string }[] = [
+const quickChips: { key: Estatus; label: string }[] = [
+  { key: "todas", label: "Todas" },
+  { key: "en_proceso", label: "En proceso" },
+  { key: "en_camino", label: "En camino" },
+];
+const estadoOpciones: { key: Estatus; label: string }[] = [
   { key: "todas", label: "Todas" },
   { key: "en_proceso", label: "En proceso" },
   { key: "en_camino", label: "En camino" },
@@ -33,7 +39,7 @@ function estatusDe(c: Compra): Exclude<Estatus, "todas"> {
     case "En camino": return "en_camino";
     case "Lista para recoger": return "listas";
     case "Cancelada": return "canceladas";
-    default: return "entregadas"; // "Entregado" or in-store (no estado)
+    default: return "entregadas";
   }
 }
 
@@ -45,29 +51,62 @@ const badge: Record<CompraEstado, { cls: string; icon: typeof Truck }> = {
   Cancelada: { cls: "bg-ink-100 text-ink-500", icon: X },
 };
 
-interface Avanzados {
-  anio: string; // "todos" | year
-  tienda: string; // "todas" | store name
-  tipo: "todos" | CompraCanal;
-  texto: string; // ticket / order search
+// ── date helpers ──
+const MESES = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
+function parseFecha(s: string): Date {
+  const [d, m, y] = s.split(" ");
+  return new Date(Number(y), Math.max(0, MESES.indexOf(m.toLowerCase())), Number(d));
 }
-const avanzadosVacios: Avanzados = { anio: "todos", tienda: "todas", tipo: "todos", texto: "" };
+type FechaRango = "todas" | "30d" | "3m" | "6m" | "custom";
+
+interface Avanzados {
+  fecha: FechaRango;
+  desde: string; // YYYY-MM-DD (custom)
+  hasta: string;
+  tipo: "todas" | CompraCanal;
+  tienda: "todas" | "mi_tienda" | string; // store name when specific
+  texto: string;
+}
+const avVacios: Avanzados = { fecha: "todas", desde: "", hasta: "", tipo: "todas", tienda: "todas", texto: "" };
 
 export function Compras() {
   const navigate = useNavigate();
+  const { tienda: miTienda } = useTiendaContexto();
   const [estatus, setEstatus] = useState<Estatus>("todas");
-  const [adv, setAdv] = useState<Avanzados>(avanzadosVacios);
+  const [adv, setAdv] = useState<Avanzados>(avVacios);
   const [sheet, setSheet] = useState(false);
 
-  const anios = useMemo(() => [...new Set(compras.map((c) => c.fecha.split(" ").pop()!))].sort().reverse(), []);
-  const tiendas = useMemo(() => [...new Set(compras.map((c) => c.tienda))], []);
-  const nActivos = (adv.anio !== "todos" ? 1 : 0) + (adv.tienda !== "todas" ? 1 : 0) + (adv.tipo !== "todos" ? 1 : 0) + (adv.texto.trim() ? 1 : 0);
+  // Reference "now" = the most recent purchase, so relative ranges are deterministic in the demo.
+  const refDate = useMemo(() => new Date(Math.max(...compras.map((c) => parseFecha(c.fecha).getTime()))), []);
+  const tiendasCompra = useMemo(() => [...new Set(compras.map((c) => c.tienda))], []);
+
+  // Advanced filters active (those NOT covered by the 3 visible quick chips) → the "Filtros" badge.
+  const estadoAvanzado = estatus !== "todas" && estatus !== "en_proceso" && estatus !== "en_camino";
+  const nActivos =
+    (estadoAvanzado ? 1 : 0) +
+    (adv.fecha !== "todas" ? 1 : 0) +
+    (adv.tipo !== "todas" ? 1 : 0) +
+    (adv.tienda !== "todas" ? 1 : 0) +
+    (adv.texto.trim() ? 1 : 0);
+
+  const enRango = (c: Compra) => {
+    if (adv.fecha === "todas") return true;
+    const t = parseFecha(c.fecha).getTime();
+    if (adv.fecha === "custom") {
+      const okDesde = !adv.desde || t >= new Date(adv.desde).getTime();
+      const okHasta = !adv.hasta || t <= new Date(adv.hasta).getTime();
+      return okDesde && okHasta;
+    }
+    const dias = adv.fecha === "30d" ? 30 : adv.fecha === "3m" ? 90 : 180;
+    return t >= refDate.getTime() - dias * 24 * 60 * 60 * 1000;
+  };
 
   const lista = compras.filter((c) => {
     if (estatus !== "todas" && estatusDe(c) !== estatus) return false;
-    if (adv.anio !== "todos" && c.fecha.split(" ").pop() !== adv.anio) return false;
-    if (adv.tienda !== "todas" && c.tienda !== adv.tienda) return false;
-    if (adv.tipo !== "todos" && c.canal !== adv.tipo) return false;
+    if (!enRango(c)) return false;
+    if (adv.tipo !== "todas" && c.canal !== adv.tipo) return false;
+    if (adv.tienda === "mi_tienda" && c.tienda !== miTienda?.nombre) return false;
+    if (adv.tienda !== "todas" && adv.tienda !== "mi_tienda" && c.tienda !== adv.tienda) return false;
     if (adv.texto.trim() && !c.ticket.toLowerCase().replace("#", "").includes(adv.texto.trim().toLowerCase().replace("#", ""))) return false;
     return true;
   });
@@ -99,14 +138,15 @@ export function Compras() {
         </button>
       </div>
 
-      {/* Status chips (horizontal scroll on mobile) + secondary "Filtros" */}
+      {/* Quick filters (3) + a clearly separated "Filtros" button — nothing overlaps.
+          The chips scroll horizontally if the width is tight; the button never shrinks. */}
       <div className="mb-5 flex items-center gap-2">
-        <div className="-mx-4 flex flex-1 gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:px-0 [&::-webkit-scrollbar]:hidden">
-          {estatusChips.map((t) => (
+        <div className="flex min-w-0 flex-1 gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {quickChips.map((t) => (
             <button
               key={t.key}
               onClick={() => setEstatus(t.key)}
-              className={`min-h-[38px] shrink-0 rounded-full border px-4 text-sm font-medium transition-colors ${
+              className={`min-h-[40px] shrink-0 rounded-full border px-4 text-sm font-medium transition-colors ${
                 estatus === t.key ? "border-kelder-600 bg-kelder-600 text-white" : "border-ink-200 text-ink-700 hover:bg-ink-50"
               }`}
             >
@@ -116,7 +156,7 @@ export function Compras() {
         </div>
         <button
           onClick={() => setSheet(true)}
-          className="relative inline-flex min-h-[38px] shrink-0 items-center gap-1.5 rounded-full border border-ink-200 px-4 text-sm font-medium text-ink-700 hover:bg-ink-50"
+          className="inline-flex min-h-[40px] shrink-0 items-center gap-1.5 rounded-full border border-ink-200 px-4 text-sm font-medium text-ink-700 hover:bg-ink-50"
         >
           <SlidersHorizontal size={16} aria-hidden="true" />
           Filtros
@@ -152,7 +192,6 @@ export function Compras() {
                 )}
               </div>
 
-              {/* product thumbnails */}
               <div className="mt-4 flex items-center gap-2">
                 {thumbs.map((it, i) => (
                   <span key={i} className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-xl bg-ink-50">
@@ -164,7 +203,6 @@ export function Compras() {
                 )}
               </div>
 
-              {/* summary + actions */}
               <div className="mt-4 flex flex-wrap items-end justify-between gap-3 border-t border-ink-100 pt-4">
                 <div>
                   <p className="text-[15px] font-semibold text-ink-900">
@@ -174,18 +212,12 @@ export function Compras() {
                 </div>
                 <div className="flex items-center gap-4">
                   {trackable && (
-                    <button
-                      onClick={() => navigate(`/compras/${c.id}`)}
-                      className="inline-flex min-h-[44px] items-center gap-1 text-sm font-semibold text-ink-700 hover:text-ink-900"
-                    >
+                    <button onClick={() => navigate(`/compras/${c.id}`)} className="inline-flex min-h-[44px] items-center gap-1 text-sm font-semibold text-ink-700 hover:text-ink-900">
                       Seguir pedido
                       <ArrowRight size={15} aria-hidden="true" />
                     </button>
                   )}
-                  <button
-                    onClick={() => navigate(`/compras/${c.id}`)}
-                    className="inline-flex min-h-[44px] items-center gap-1 text-sm font-semibold text-kelder-600"
-                  >
+                  <button onClick={() => navigate(`/compras/${c.id}`)} className="inline-flex min-h-[44px] items-center gap-1 text-sm font-semibold text-kelder-600">
                     Ver detalle
                     <ArrowRight size={15} aria-hidden="true" />
                   </button>
@@ -196,19 +228,18 @@ export function Compras() {
         })}
 
         {lista.length === 0 && (
-          <p className="rounded-2xl border border-ink-100 bg-white px-5 py-10 text-center text-sm text-ink-500">
-            No encontramos compras con estos filtros.
-          </p>
+          <p className="rounded-2xl border border-ink-100 bg-white px-5 py-10 text-center text-sm text-ink-500">No encontramos compras con estos filtros.</p>
         )}
       </div>
 
       {sheet && (
         <FiltrosSheet
+          estatus={estatus}
           adv={adv}
-          anios={anios}
-          tiendas={tiendas}
-          onApply={(next) => {
-            setAdv(next);
+          tiendas={tiendasCompra}
+          onApply={(e, a) => {
+            setEstatus(e);
+            setAdv(a);
             setSheet(false);
           }}
           onClose={() => setSheet(false)}
@@ -221,19 +252,28 @@ export function Compras() {
 /* ─────────────────────────── Filtros sheet ─────────────────────────── */
 
 function FiltrosSheet({
+  estatus,
   adv,
-  anios,
   tiendas,
   onApply,
   onClose,
 }: {
+  estatus: Estatus;
   adv: Avanzados;
-  anios: string[];
   tiendas: string[];
-  onApply: (a: Avanzados) => void;
+  onApply: (e: Estatus, a: Avanzados) => void;
   onClose: () => void;
 }) {
+  const [est, setEst] = useState<Estatus>(estatus);
   const [draft, setDraft] = useState<Avanzados>(adv);
+  const [verTiendas, setVerTiendas] = useState(adv.tienda !== "todas" && adv.tienda !== "mi_tienda");
+
+  const fechas: { key: FechaRango; label: string }[] = [
+    { key: "30d", label: "Últimos 30 días" },
+    { key: "3m", label: "Últimos 3 meses" },
+    { key: "6m", label: "Últimos 6 meses" },
+    { key: "custom", label: "Personalizado" },
+  ];
 
   return (
     <Sheet title="Filtros" description="Encuentra un pedido específico." onClose={onClose}>
@@ -249,34 +289,58 @@ function FiltrosSheet({
         />
       </label>
 
-      <Grupo titulo="Fecha">
-        <Opcion label="Todo" activo={draft.anio === "todos"} onClick={() => setDraft({ ...draft, anio: "todos" })} />
-        {anios.map((a) => (
-          <Opcion key={a} label={a} activo={draft.anio === a} onClick={() => setDraft({ ...draft, anio: a })} />
+      <Grupo titulo="Estado">
+        {estadoOpciones.map((o) => (
+          <Opcion key={o.key} label={o.label} activo={est === o.key} onClick={() => setEst(o.key)} />
         ))}
+      </Grupo>
+
+      <Grupo titulo="Fecha">
+        <Opcion label="Todas" activo={draft.fecha === "todas"} onClick={() => setDraft({ ...draft, fecha: "todas" })} />
+        {fechas.map((f) => (
+          <Opcion key={f.key} label={f.label} activo={draft.fecha === f.key} onClick={() => setDraft({ ...draft, fecha: f.key })} />
+        ))}
+      </Grupo>
+      {draft.fecha === "custom" && (
+        <div className="mt-3 flex gap-3">
+          <label className="flex-1 text-xs font-medium text-ink-500">
+            Desde
+            <input type="date" value={draft.desde} onChange={(e) => setDraft({ ...draft, desde: e.target.value })} className="mt-1 h-11 w-full rounded-xl border border-ink-200 bg-white px-3 text-sm text-ink-900" />
+          </label>
+          <label className="flex-1 text-xs font-medium text-ink-500">
+            Hasta
+            <input type="date" value={draft.hasta} onChange={(e) => setDraft({ ...draft, hasta: e.target.value })} className="mt-1 h-11 w-full rounded-xl border border-ink-200 bg-white px-3 text-sm text-ink-900" />
+          </label>
+        </div>
+      )}
+
+      <Grupo titulo="Tipo de compra">
+        <Opcion label="Todas" activo={draft.tipo === "todas"} onClick={() => setDraft({ ...draft, tipo: "todas" })} />
+        <Opcion label="Compra en tienda" activo={draft.tipo === "tienda"} onClick={() => setDraft({ ...draft, tipo: "tienda" })} />
+        <Opcion label="Pedido" activo={draft.tipo === "linea"} onClick={() => setDraft({ ...draft, tipo: "linea" })} />
       </Grupo>
 
       <Grupo titulo="Tienda">
-        <Opcion label="Todas" activo={draft.tienda === "todas"} onClick={() => setDraft({ ...draft, tienda: "todas" })} />
-        {tiendas.map((t) => (
-          <Opcion key={t} label={t} activo={draft.tienda === t} onClick={() => setDraft({ ...draft, tienda: t })} />
-        ))}
+        <Opcion label="Todas" activo={draft.tienda === "todas"} onClick={() => { setDraft({ ...draft, tienda: "todas" }); setVerTiendas(false); }} />
+        <Opcion label="Mi tienda" activo={draft.tienda === "mi_tienda"} onClick={() => { setDraft({ ...draft, tienda: "mi_tienda" }); setVerTiendas(false); }} />
+        <Opcion label="Seleccionar tienda" activo={verTiendas || (draft.tienda !== "todas" && draft.tienda !== "mi_tienda")} onClick={() => setVerTiendas(true)} />
       </Grupo>
-
-      <Grupo titulo="Tipo de compra">
-        <Opcion label="Todos" activo={draft.tipo === "todos"} onClick={() => setDraft({ ...draft, tipo: "todos" })} />
-        <Opcion label="En tienda" activo={draft.tipo === "tienda"} onClick={() => setDraft({ ...draft, tipo: "tienda" })} />
-        <Opcion label="En línea" activo={draft.tipo === "linea"} onClick={() => setDraft({ ...draft, tipo: "linea" })} />
-      </Grupo>
+      {verTiendas && (
+        <div className="mt-2 flex flex-wrap gap-2">
+          {tiendas.map((t) => (
+            <Opcion key={t} label={t} activo={draft.tienda === t} onClick={() => setDraft({ ...draft, tienda: t })} />
+          ))}
+        </div>
+      )}
 
       <div className="mt-6 flex gap-3">
         <button
-          onClick={() => setDraft(avanzadosVacios)}
+          onClick={() => { setEst("todas"); setDraft(avVacios); setVerTiendas(false); }}
           className="min-h-[48px] flex-1 rounded-full border border-ink-200 text-sm font-semibold text-ink-700 hover:bg-ink-50"
         >
-          Limpiar
+          Limpiar filtros
         </button>
-        <button onClick={() => onApply(draft)} className="min-h-[48px] flex-1 rounded-full bg-kelder-600 text-sm font-semibold text-white">
+        <button onClick={() => onApply(est, draft)} className="min-h-[48px] flex-1 rounded-full bg-kelder-600 text-sm font-semibold text-white">
           Aplicar filtros
         </button>
       </div>
