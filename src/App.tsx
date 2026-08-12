@@ -21,6 +21,7 @@ import { Promociones } from "@/pages/Promociones";
 import { PromocionDetalle } from "@/pages/PromocionDetalle";
 import { Favoritos } from "@/pages/Favoritos";
 import { MiVisita } from "@/pages/MiVisita";
+import { Notificaciones } from "@/pages/Notificaciones";
 
 export default function App() {
   return (
@@ -48,6 +49,7 @@ export default function App() {
             <Route path="/promocion/:id" element={<PromocionDetalle />} />
             <Route path="/favoritos" element={<Favoritos />} />
             <Route path="/mi-visita" element={<MiVisita />} />
+            <Route path="/notificaciones" element={<Notificaciones />} />
           </Routes>
         </AppShell>
       </ClubProvider>

@@ -1,8 +1,6 @@
-import { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { Search, Bell } from "lucide-react";
 import { StoreSwitcher } from "@/components/layout/StoreSwitcher";
-import { NotificationsSheet } from "@/components/layout/NotificationsSheet";
 import { user, notificacionesNoLeidas } from "@/lib/mock-data";
 import logoKelderClub from "../../assets/logos/kelder-club.png";
 
@@ -21,7 +19,6 @@ const items = [
 
 export function TopNav() {
   const navigate = useNavigate();
-  const [notifOpen, setNotifOpen] = useState(false);
 
   return (
     <header className="sticky top-0 z-40 border-b border-ink-100 bg-cream/85 pt-[env(safe-area-inset-top)] backdrop-blur">
@@ -63,7 +60,7 @@ export function TopNav() {
             <span className="hidden text-sm font-medium sm:inline md:hidden">Buscar</span>
           </button>
           <button
-            onClick={() => setNotifOpen(true)}
+            onClick={() => navigate("/notificaciones")}
             aria-label="Notificaciones"
             className="relative flex h-11 w-11 items-center justify-center rounded-full text-ink-500 hover:bg-white"
           >
@@ -84,8 +81,6 @@ export function TopNav() {
           <StoreSwitcher compact />
         </div>
       </div>
-
-      <NotificationsSheet open={notifOpen} onClose={() => setNotifOpen(false)} />
     </header>
   );
 }
