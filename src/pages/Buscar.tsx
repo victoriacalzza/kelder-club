@@ -1,14 +1,12 @@
 import { useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, Camera, ScanLine, SlidersHorizontal, ChevronDown, X, Check } from "lucide-react";
-import { ProductCard } from "@/components/ui/ProductCard";
+import { ProductPeekCard } from "@/components/ui/ProductPeekCard";
 import { BackButton } from "@/components/layout/BackButton";
 import { Button } from "@/components/ui/Button";
 import {
   catalogo,
   busquedasSugeridas,
-  cuenta,
-  formatMXN,
   departamentos,
   tiposProducto,
   marcasBusqueda,
@@ -18,12 +16,14 @@ import {
   tallasDeTipo,
   tallasDeProducto,
   availabilityForStore,
+  disponibilidadContextual,
   type Producto,
   type Departamento,
   type TipoProducto,
   type UnidadNegocio,
 } from "@/lib/mock-data";
 import { useTiendaContexto } from "@/lib/useTiendaContexto";
+import { useClub } from "@/lib/ClubContext";
 
 type Modo = "texto" | "codigo" | "foto";
 type Orden = "relevancia" | "precio_asc" | "precio_desc" | "recientes";
@@ -120,21 +120,26 @@ export function Buscar({
   const [filtros, setFiltros] = useState<Filtros>({ ...filtrosVacios, ...initialFiltros });
   const [openDrop, setOpenDrop] = useState<string | null>(null);
   const [drawer, setDrawer] = useState(initialDrawer);
-  const [dispFiltro, setDispFiltro] = useState<"todos" | "en_tienda" | "extendido">("todos");
+  const [ambito, setAmbito] = useState<"mi_tienda" | "todo">("todo");
   const { tienda: miTienda } = useTiendaContexto();
+  const { tallaMx } = useClub();
   const storeId = miTienda?.id ?? "t1";
 
   const base = buscar(query);
-  const resultadosBase = ordenar(aplicaFiltros(base, filtros), orden);
-  // Availability is relative to the selected store; in-store results are surfaced first.
+  const resultadosBase = aplicaFiltros(base, filtros);
   const enTienda = (p: Producto) => {
     const a = availabilityForStore(p, storeId);
     return a === "in_store" || a === "low_stock";
   };
-  const rank = (p: Producto) => (enTienda(p) ? 0 : 1);
-  const resultados = resultadosBase
-    .filter((p) => (dispFiltro === "en_tienda" ? enTienda(p) : dispFiltro === "extendido" ? !enTienda(p) : true))
-    .sort((a, b) => rank(a) - rank(b));
+  // "Mi tienda" narrows to in-store; then order by how easy the product is to get (ranking), unless
+  // the user picked an explicit sort.
+  const filtradas = resultadosBase.filter((p) => (ambito === "mi_tienda" ? enTienda(p) : true));
+  const resultados =
+    orden === "relevancia"
+      ? [...filtradas].sort((a, b) => disponibilidadContextual(a, storeId, tallaMx).rank - disponibilidadContextual(b, storeId, tallaMx).rank)
+      : ordenar(filtradas, orden);
+  // Typeahead: top matches shown live while typing in the initial view.
+  const typeahead = query.trim().length >= 2 ? buscar(query).slice(0, 6) : [];
 
   const set = (patch: Partial<Filtros>) => setFiltros((f) => ({ ...f, ...patch }));
   const chips = chipsActivos(filtros, set);
@@ -303,7 +308,6 @@ export function Buscar({
             </h1>
             <p className="mt-0.5 text-sm text-ink-500">
               {resultados.length} {resultados.length === 1 ? "producto" : "productos"}
-              <span className="ml-2 text-ink-400">· Tu cashback: {formatMXN(cuenta.cashbackDisponible)}</span>
             </p>
           </div>
           <div className="hidden items-center gap-2 text-sm text-ink-500 md:flex">
@@ -312,34 +316,48 @@ export function Buscar({
           </div>
         </div>
 
-        {/* Availability quick-filter — prioritizes the selected store */}
-        <div className="-mx-4 mb-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:px-0 [&::-webkit-scrollbar]:hidden">
-          {([
-            { key: "todos", label: "Todos" },
-            { key: "en_tienda", label: miTienda ? `En ${miTienda.nombre}` : "En mi tienda" },
-            { key: "extendido", label: "Catálogo extendido" },
-          ] as const).map((c) => (
-            <button
-              key={c.key}
-              onClick={() => setDispFiltro(c.key)}
-              className={`min-h-[34px] shrink-0 rounded-full border px-3.5 text-sm font-medium transition-colors ${
-                dispFiltro === c.key ? "border-kelder-600 bg-kelder-600 text-white" : "border-ink-200 text-ink-600 hover:bg-ink-50"
-              }`}
-            >
-              {c.label}
-            </button>
+        {/* Simple, high-value quick filters (not a wall of controls). Ámbito + talla + depto + tipo. */}
+        <div className="-mx-4 mb-4 flex items-center gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:px-0 [&::-webkit-scrollbar]:hidden">
+          <div className="inline-flex shrink-0 items-center rounded-full border border-ink-200 bg-white p-0.5">
+            {([
+              { key: "mi_tienda", label: "Mi tienda" },
+              { key: "todo", label: "Todo" },
+            ] as const).map((s) => (
+              <button
+                key={s.key}
+                onClick={() => setAmbito(s.key)}
+                className={`min-h-[32px] rounded-full px-3.5 text-sm font-medium transition-colors ${
+                  ambito === s.key ? "bg-kelder-600 text-white" : "text-ink-600"
+                }`}
+              >
+                {s.label}
+              </button>
+            ))}
+          </div>
+          <span className="h-5 w-px shrink-0 bg-ink-100" aria-hidden="true" />
+          {tallaMx != null && (
+            <QuickChip
+              label={`Mi talla · ${tallaMx}`}
+              active={filtros.tallas.includes(String(tallaMx))}
+              onClick={() => set({ tallas: filtros.tallas.includes(String(tallaMx)) ? [] : [String(tallaMx)] })}
+            />
+          )}
+          {(["Mujer", "Hombre"] as Departamento[]).map((d) => (
+            <QuickChip key={d} label={d} active={filtros.departamento === d} onClick={() => set({ departamento: filtros.departamento === d ? null : d })} />
+          ))}
+          {tiposProducto.map((t) => (
+            <QuickChip key={t} label={t} active={filtros.tipo === t} onClick={() => set({ tipo: filtros.tipo === t ? null : t, tallas: [] })} />
           ))}
         </div>
 
-        {/* Results grid / empty */}
+        {/* Results grid / empty — simplified card: image, brand, name, price, one availability, favorito */}
         {resultados.length > 0 ? (
           <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
             {resultados.map((p) => (
-              <ProductCard
+              <ProductPeekCard
                 key={p.id}
                 producto={p}
-                poderCompraCashback={cuenta.cashbackDisponible}
-                mostrarDisponibilidad
+                contexto={disponibilidadContextual(p, storeId, tallaMx)}
                 onClick={() => navigate(`/producto/${p.id}`)}
               />
             ))}
@@ -427,20 +445,45 @@ export function Buscar({
             </button>
           </div>
 
-          <div className="mt-6">
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-400">Búsquedas sugeridas</p>
-            <div className="flex flex-wrap gap-2">
-              {busquedasSugeridas.map((s) => (
+          {/* Typeahead — live matches as you type */}
+          {typeahead.length > 0 ? (
+            <div className="mt-4 overflow-hidden rounded-2xl border border-ink-100 bg-white">
+              {typeahead.map((p) => (
                 <button
-                  key={s}
-                  onClick={() => run(s)}
-                  className="min-h-[40px] rounded-full border border-ink-200 px-4 text-sm font-medium text-ink-700 hover:bg-ink-50"
+                  key={p.id}
+                  onClick={() => navigate(`/producto/${p.id}`)}
+                  className="flex w-full items-center gap-3 border-b border-ink-100 px-3 py-2.5 text-left last:border-0 hover:bg-ink-50"
                 >
-                  {s}
+                  <span className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-ink-50">
+                    {p.imagen && <img src={p.imagen} alt="" className="h-full w-full object-contain p-1" />}
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-xs text-ink-400">{p.marca}</span>
+                    <span className="block truncate text-sm font-medium text-ink-900">{p.modelo}</span>
+                  </span>
+                  <Search size={15} className="shrink-0 text-ink-300" aria-hidden="true" />
                 </button>
               ))}
+              <button onClick={() => run()} className="w-full bg-ink-50 px-3 py-2.5 text-sm font-semibold text-kelder-600">
+                Ver todos los resultados de «{query.trim()}»
+              </button>
             </div>
-          </div>
+          ) : (
+            <div className="mt-6">
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-400">Búsquedas sugeridas</p>
+              <div className="flex flex-wrap gap-2">
+                {busquedasSugeridas.map((s) => (
+                  <button
+                    key={s}
+                    onClick={() => run(s)}
+                    className="min-h-[40px] rounded-full border border-ink-200 px-4 text-sm font-medium text-ink-700 hover:bg-ink-50"
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -518,6 +561,19 @@ function chipsActivos(f: Filtros, set: (p: Partial<Filtros>) => void): Chip[] {
   if (f.unidad) chips.push({ key: "unidad", label: f.unidad, onRemove: () => set({ unidad: null }) });
   if (f.soloDisponibles) chips.push({ key: "disp", label: "Disponibles", onRemove: () => set({ soloDisponibles: false }) });
   return chips;
+}
+
+function QuickChip({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`min-h-[34px] shrink-0 rounded-full border px-3.5 text-sm font-medium transition-colors ${
+        active ? "border-kelder-600 bg-kelder-600 text-white" : "border-ink-200 text-ink-600 hover:bg-ink-50"
+      }`}
+    >
+      {label}
+    </button>
+  );
 }
 
 function ChipsRow({ chips, onClear }: { chips: Chip[]; onClear: () => void }) {

@@ -10,6 +10,7 @@ export type AnalyticsEvent =
   | "store_view"
   | "directions_click"
   | "call_store"
+  | "size_alert"
   | "promotion_view"
   | "promotion_product_click"
   | "cashback_product_click"

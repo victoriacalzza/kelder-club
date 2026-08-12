@@ -63,7 +63,7 @@ export function BottomNav({ onPagar }: { onPagar: () => void }) {
               lives inside the Pagar sheet, not on the button. */}
           <button
             onClick={onPagar}
-            aria-label="Pagar con cashback"
+            aria-label="Mi K — identifícate y paga"
             className="absolute left-1/2 top-0 z-10 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center"
           >
             <span className="lift flex h-14 w-14 items-center justify-center rounded-full bg-kelder-600 shadow-card ring-[6px] ring-cream">
@@ -71,7 +71,7 @@ export function BottomNav({ onPagar }: { onPagar: () => void }) {
             </span>
           </button>
           <span className="pointer-events-none absolute bottom-1.5 left-1/2 -translate-x-1/2 text-[11px] font-semibold text-kelder-700">
-            Pagar
+            Mi K
           </span>
         </div>
       </div>

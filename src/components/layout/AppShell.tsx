@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from "react";
 import { TopNav } from "./TopNav";
 import { BottomNav } from "./BottomNav";
-import { QRModal } from "@/components/modals/QRModal";
+import { MiKSheet } from "@/components/modals/MiKSheet";
 
 /**
  * App shell for the Kelder Club loyalty experience: a top navigation bar on desktop and a
@@ -18,7 +18,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         {children}
       </main>
       <BottomNav onPagar={() => setPagarOpen(true)} />
-      {pagarOpen && <QRModal onClose={() => setPagarOpen(false)} />}
+      {pagarOpen && <MiKSheet onClose={() => setPagarOpen(false)} />}
     </div>
   );
 }

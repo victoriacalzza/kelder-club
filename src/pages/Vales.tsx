@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { TopBar } from "@/components/layout/TopBar";
 import {
@@ -52,7 +52,9 @@ export function Vales({
   initialTab?: InitialTab;
 }) {
   const navigate = useNavigate();
-  const init = mapInitial(initialTab);
+  const [params] = useSearchParams();
+  const queryTab = params.get("tab") as InitialTab | null;
+  const init = mapInitial(queryTab ?? initialTab);
   const [tab, setTab] = useState<MainTab>(init.tab);
   const [hist, setHist] = useState<HistFiltro>(init.hist);
 
@@ -101,6 +103,25 @@ export function Vales({
           <>
             <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-ink-500">Mis CrediVales</h2>
             <p className="mb-4 mt-1 text-sm text-ink-500">Consulta tus vales, el saldo disponible y los pagos asociados a cada mayorista.</p>
+
+            {/* Extravale highlight — available money, easy to spot without digging into a CrediVale */}
+            {extravalesList.length > 0 && (
+              <button
+                onClick={() => setTab("extravales")}
+                className="mb-4 flex w-full items-center justify-between gap-4 rounded-2xl border border-success-100 bg-success-50 p-4 text-left"
+              >
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-success-700">Extravale disponible</p>
+                  <p className="mt-0.5 text-2xl font-semibold tracking-tight text-ink-900">
+                    {formatMXN(extravalesList.reduce((s, v) => s + v.disponible, 0))}
+                  </p>
+                </div>
+                <span className="inline-flex shrink-0 items-center gap-1 text-sm font-semibold text-kelder-600">
+                  Ver Extravale
+                  <ArrowRight size={15} aria-hidden="true" />
+                </span>
+              </button>
+            )}
 
             {/* primary tabs — lead with what's actionable; Historial holds the past */}
             <div className="mb-6 inline-flex max-w-full items-center gap-1 overflow-x-auto rounded-full border border-ink-100 bg-white p-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">

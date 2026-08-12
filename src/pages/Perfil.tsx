@@ -5,6 +5,9 @@ import { BackButton } from "@/components/layout/BackButton";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { user } from "@/lib/mock-data";
+import { useClub } from "@/lib/ClubContext";
+
+const TALLAS_MX = [22, 23, 24, 25, 26, 27, 28, 29];
 
 interface Section {
   id: string;
@@ -39,6 +42,7 @@ const initialSections: Section[] = [
 export function Perfil() {
   const [sections, setSections] = useState(initialSections);
   const [openId, setOpenId] = useState<string | null>(null);
+  const { tallaMx, setTallaMx } = useClub();
 
   const done = sections.filter((s) => s.done).length;
   const percent = Math.round((done / sections.length) * 100);
@@ -62,6 +66,29 @@ export function Perfil() {
           <p className="truncate text-sm text-ink-500">{user.correo}</p>
         </div>
       </Card>
+
+      {/* Mi talla — set once, remembered, used to personalize catalog/search/availability */}
+      <div className="mt-4 rounded-3xl bg-white p-5 shadow-soft">
+        <div className="flex items-baseline justify-between gap-3">
+          <p className="font-medium text-ink-900">Mi talla</p>
+          <p className="text-sm text-ink-500">{tallaMx != null ? `${tallaMx} MX` : "Sin definir"}</p>
+        </div>
+        <p className="mt-0.5 text-sm text-ink-500">Personaliza tu catálogo, búsqueda y disponibilidad.</p>
+        <div className="mt-3 flex flex-wrap gap-2">
+          {TALLAS_MX.map((t) => (
+            <button
+              key={t}
+              onClick={() => setTallaMx(t)}
+              aria-pressed={tallaMx === t}
+              className={`flex h-11 min-w-[44px] items-center justify-center rounded-xl border px-3 text-sm font-medium transition-colors ${
+                tallaMx === t ? "border-kelder-600 bg-kelder-50 text-kelder-700" : "border-ink-200 text-ink-900 hover:border-ink-300"
+              }`}
+            >
+              {t}
+            </button>
+          ))}
+        </div>
+      </div>
 
       {percent < 100 && (
         <div className="mt-4 rounded-3xl bg-white p-5 shadow-soft">

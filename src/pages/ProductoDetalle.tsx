@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { MapPin, Clock, ArrowUpRight, Heart, ListPlus, Check, Store, Package, ChevronDown } from "lucide-react";
+import { MapPin, Clock, ArrowUpRight, Heart, ListPlus, Check, Bell, Package, ChevronDown } from "lucide-react";
 import { BackButton } from "@/components/layout/BackButton";
 import { Button } from "@/components/ui/Button";
 import {
@@ -11,7 +11,7 @@ import {
   precioConCashback,
   disponibilidadDeProducto,
   tiendaDeProductoCercana,
-  availabilityForStore,
+  disponibilidadContextual,
   cashbackItemPorId,
   type Producto,
 } from "@/lib/mock-data";
@@ -23,9 +23,8 @@ export function ProductoDetalle({ producto: prodProp }: { producto?: Producto })
   const { id } = useParams();
   const navigate = useNavigate();
   const producto = prodProp ?? catalogo.find((p) => p.id === id) ?? cashbackItemPorId(id) ?? catalogo[0];
-  const [talla, setTalla] = useState<string | null>(null);
-  const dispRef = useRef<HTMLDivElement>(null);
-  const { esFavorito, toggleFavorito, enVisita, toggleVisita } = useClub();
+  const { esFavorito, toggleFavorito, enVisita, toggleVisita, tallaMx } = useClub();
+  const { tienda: miTienda } = useTiendaContexto();
 
   const guardado = esFavorito(producto.id);
   const enMiVisita = enVisita(producto.id);
@@ -35,9 +34,18 @@ export function ProductoDetalle({ producto: prodProp }: { producto?: Producto })
   const disponibilidad = disponibilidadDeProducto(producto);
   const cercana = tiendaDeProductoCercana(producto);
   const tallas = producto.tallas?.map(String) ?? producto.tallasRopa ?? null;
-  const { tienda: miTienda } = useTiendaContexto();
-  const av = miTienda ? availabilityForStore(producto, miTienda.id) : "extended_catalog";
+  const esCalzado = (producto.tallas?.length ?? 0) > 0;
+  const [talla, setTalla] = useState<string | null>(esCalzado && tallaMx != null && (producto.tallas ?? []).includes(tallaMx) ? String(tallaMx) : null);
+
+  // Contextual availability for THIS member (size + selected store), and where to send them.
+  const ctx = miTienda ? disponibilidadContextual(producto, miTienda.id, tallaMx) : null;
+  const tallaAqui = ctx?.tallaEnTienda ?? false;
+  const puedeAvisar = ctx?.tono === "avisar"; // product in my store but my size isn't here
+  const otraTienda = disponibilidad.find((d) => !miTienda || d.tienda.id !== miTienda.id)?.tienda ?? cercana;
+  const destino = tallaAqui && miTienda ? miTienda : otraTienda;
+  const dispRef = useRef<HTMLDivElement>(null);
   const [otras, setOtras] = useState(false);
+  const [avisado, setAvisado] = useState(false);
 
   useEffect(() => {
     track("product_view", { producto: producto.id });
@@ -73,35 +81,36 @@ export function ProductoDetalle({ producto: prodProp }: { producto?: Producto })
           <p className="mt-2 text-2xl font-semibold text-ink-900">{formatMXN(producto.precio)}</p>
           <p className="mt-0.5 text-sm font-semibold text-kelder-600">Generas {formatMXN(cashbackGen)} de cashback</p>
 
-          {/* availability relative to the SELECTED store — the transversal signal */}
-          {miTienda && (
+          {/* Contextual availability for the member's size in their selected store */}
+          {miTienda && ctx && (
             <div
               className={`mt-4 flex items-start gap-2.5 rounded-2xl border p-3.5 ${
-                av === "in_store"
-                  ? "border-success-100 bg-success-50"
-                  : av === "low_stock"
-                    ? "border-warning-100 bg-warning-50"
-                    : "border-ink-100 bg-ink-50"
+                tallaAqui ? "border-success-100 bg-success-50" : puedeAvisar ? "border-warning-100 bg-warning-50" : "border-ink-100 bg-ink-50"
               }`}
             >
               <span className="mt-0.5 shrink-0" aria-hidden="true">
-                {av === "extended_catalog" || av === "unavailable" ? (
-                  <Package size={18} className="text-ink-500" />
-                ) : (
-                  <MapPin size={18} className={av === "low_stock" ? "text-warning-600" : "text-success-700"} />
-                )}
+                {tallaAqui ? <Check size={18} className="text-success-700" /> : ctx.tono === "envio" ? <Package size={18} className="text-ink-500" /> : <MapPin size={18} className={puedeAvisar ? "text-warning-600" : "text-ink-500"} />}
               </span>
               <div className="min-w-0">
-                {av === "in_store" && <p className="text-sm font-semibold text-success-700">Disponible en {miTienda.nombre}</p>}
-                {av === "low_stock" && <p className="text-sm font-semibold text-warning-600">Últimas piezas en {miTienda.nombre}</p>}
-                {av === "extended_catalog" && (
+                {esCalzado && tallaMx != null && <p className="text-xs font-medium text-ink-500">Tu talla: {tallaMx} MX</p>}
+                {tallaAqui ? (
                   <>
-                    <p className="text-sm font-semibold text-ink-900">Catálogo extendido</p>
-                    <p className="text-sm text-ink-500">Puedes solicitarlo en {miTienda.nombre}. Pronto: pídelo y recógelo en tienda.</p>
+                    <p className="text-sm font-semibold text-success-700">Disponible en {miTienda.nombre}</p>
+                    <p className="text-sm text-ink-500">A {miTienda.distancia} de ti</p>
+                  </>
+                ) : puedeAvisar ? (
+                  <>
+                    <p className="text-sm font-semibold text-warning-700">Tu talla no está disponible aquí</p>
+                    <p className="text-sm text-ink-600">Disponible en {otraTienda.nombre} · {otraTienda.distancia}</p>
+                  </>
+                ) : ctx.tono === "envio" ? (
+                  <p className="text-sm font-semibold text-ink-900">Disponible para envío</p>
+                ) : (
+                  <>
+                    <p className="text-sm font-semibold text-ink-900">{ctx.mensaje}</p>
+                    <p className="text-sm text-ink-600">{otraTienda.nombre} · {otraTienda.distancia}</p>
                   </>
                 )}
-                {av === "unavailable" && <p className="text-sm font-semibold text-ink-600">No disponible en {miTienda.nombre} por ahora</p>}
-                {(av === "in_store" || av === "low_stock") && <p className="text-sm text-ink-500">A {miTienda.distancia} de ti</p>}
               </div>
             </div>
           )}
@@ -123,10 +132,13 @@ export function ProductoDetalle({ producto: prodProp }: { producto?: Producto })
             <p className="mt-1.5 text-xs text-ink-400">*Simulación aplicando tu cashback disponible. No es un cargo ni un nuevo saldo.</p>
           </div>
 
-          {/* sizes — prepared for real inventory later */}
+          {/* sizes — the member's habitual size is highlighted */}
           {tallas && tallas.length > 0 && (
             <div className="mt-5">
-              <p className="mb-2 text-sm font-medium text-ink-900">Tallas disponibles</p>
+              <div className="mb-2 flex items-baseline justify-between gap-3">
+                <p className="text-sm font-medium text-ink-900">Tallas disponibles</p>
+                {esCalzado && tallaMx != null && <p className="text-xs text-ink-500">Tu talla: <span className="font-semibold text-ink-900">{tallaMx} MX</span></p>}
+              </div>
               <div className="flex flex-wrap gap-2">
                 {tallas.map((t) => (
                   <button
@@ -195,19 +207,30 @@ export function ProductoDetalle({ producto: prodProp }: { producto?: Producto })
             </div>
           </div>
 
-          {/* CTAs — discovery + visit intent, no checkout yet */}
+          {/* CTAs — DESCUBRIR → ENCONTRAR → VISITAR. Primary is "Cómo llegar", not "Comprar". */}
           <div className="mt-6 flex flex-col gap-2.5">
-            <Button
-              fullWidth
-              icon={<Store size={18} aria-hidden="true" />}
-              onClick={() => {
-                track("store_availability_view", { producto: producto.id });
-                setOtras(true);
-                dispRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-              }}
-            >
-              Ver disponibilidad
-            </Button>
+            {ctx?.tono !== "envio" && (
+              <Button
+                fullWidth
+                icon={<ArrowUpRight size={18} aria-hidden="true" />}
+                onClick={() => track("directions_click", { tienda: destino.id, producto: producto.id })}
+              >
+                Cómo llegar a {destino.nombre}
+              </Button>
+            )}
+            {puedeAvisar && miTienda && (
+              <Button
+                variant="secondary"
+                fullWidth
+                icon={avisado ? <Check size={18} aria-hidden="true" /> : <Bell size={18} aria-hidden="true" />}
+                onClick={() => {
+                  if (!avisado) track("size_alert", { producto: producto.id, tienda: miTienda.id });
+                  setAvisado(true);
+                }}
+              >
+                {avisado ? `Te avisaremos cuando llegue a ${miTienda.nombre}` : `Avísame cuando llegue a ${miTienda.nombre}`}
+              </Button>
+            )}
             <Button
               variant="secondary"
               fullWidth
@@ -219,13 +242,6 @@ export function ProductoDetalle({ producto: prodProp }: { producto?: Producto })
             >
               {enMiVisita ? "En mi lista para visitar" : "Agregar a mi lista para visitar"}
             </Button>
-            <button
-              onClick={() => track("directions_click", { tienda: cercana.id, producto: producto.id })}
-              className="inline-flex min-h-[44px] items-center justify-center gap-1.5 text-sm font-semibold text-kelder-600"
-            >
-              <ArrowUpRight size={16} aria-hidden="true" />
-              Cómo llegar a {cercana.nombre}
-            </button>
           </div>
         </div>
       </div>

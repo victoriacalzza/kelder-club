@@ -13,6 +13,11 @@ interface ClubState {
   tiendaPreferidaId: string | null;
   setTiendaPreferida: (id: string | null) => void;
 
+  // The member's habitual footwear size (MX). Set once, remembered, and used to personalize
+  // catalog/search/availability. Null until the member registers it.
+  tallaMx: number | null;
+  setTallaMx: (t: number | null) => void;
+
   favoritos: string[]; // product ids
   toggleFavorito: (id: string) => void;
   esFavorito: (id: string) => boolean;
@@ -23,9 +28,12 @@ interface ClubState {
 }
 
 const noop = () => {};
+const DEFAULT_TALLA = 24; // demo default so personalization is visible from the first run
 const ClubContext = createContext<ClubState>({
   tiendaPreferidaId: null,
   setTiendaPreferida: noop,
+  tallaMx: DEFAULT_TALLA,
+  setTallaMx: noop,
   favoritos: [],
   toggleFavorito: noop,
   esFavorito: () => false,
@@ -74,6 +82,24 @@ export function ClubProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const [tallaMx, setTallaMxState] = useState<number | null>(() => {
+    try {
+      const raw = typeof localStorage !== "undefined" ? localStorage.getItem("kc.tallaMx") : null;
+      return raw !== null ? Number(raw) : DEFAULT_TALLA;
+    } catch {
+      return DEFAULT_TALLA;
+    }
+  });
+  const setTallaMx = useCallback((t: number | null) => {
+    setTallaMxState(t);
+    try {
+      if (t !== null) localStorage.setItem("kc.tallaMx", String(t));
+      else localStorage.removeItem("kc.tallaMx");
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
   const [favoritos, toggleFavorito] = usePersistedList("kc.favoritos");
   const [visita, toggleVisita] = usePersistedList("kc.visita");
 
@@ -81,6 +107,8 @@ export function ClubProvider({ children }: { children: ReactNode }) {
     () => ({
       tiendaPreferidaId,
       setTiendaPreferida,
+      tallaMx,
+      setTallaMx,
       favoritos,
       toggleFavorito,
       esFavorito: (id) => favoritos.includes(id),
@@ -88,7 +116,7 @@ export function ClubProvider({ children }: { children: ReactNode }) {
       toggleVisita,
       enVisita: (id) => visita.includes(id),
     }),
-    [tiendaPreferidaId, setTiendaPreferida, favoritos, toggleFavorito, visita, toggleVisita],
+    [tiendaPreferidaId, setTiendaPreferida, tallaMx, setTallaMx, favoritos, toggleFavorito, visita, toggleVisita],
   );
 
   return <ClubContext.Provider value={value}>{children}</ClubContext.Provider>;

@@ -6,7 +6,6 @@ import { OrderInProgress } from "@/components/ui/OrderInProgress";
 import { PromoBanner } from "@/components/ui/PromoBanner";
 import { MarcasMarquee } from "@/components/ui/MarcasMarquee";
 import { StoreContextModule } from "@/components/ui/StoreContextModule";
-import { ExtendedCatalogTeaser } from "@/components/ui/ExtendedCatalogTeaser";
 import { QRModal } from "@/components/modals/QRModal";
 import { RedeemFlow } from "@/components/modals/RedeemFlow";
 import { track } from "@/lib/analytics";
@@ -76,12 +75,7 @@ export function Home({ profile = perfilDemo }: { profile?: ClientProfile }) {
         <StoreContextModule />
       </div>
 
-      {/* 5 · Catálogo extendido — natural continuation of the in-store carousel (before any campaign) */}
-      <div className="mt-5">
-        <ExtendedCatalogTeaser />
-      </div>
-
-      {/* 6 · Promociones — featured campaign, leads to actionable promotions */}
+      {/* 5 · Promociones — featured campaign, leads to actionable promotions */}
       <div className="mt-12 lg:mt-14">
         <PromoBanner campania={campaniaDestacada} onClick={() => navigate("/promociones")} />
       </div>

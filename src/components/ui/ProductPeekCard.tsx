@@ -1,5 +1,5 @@
-import { Heart } from "lucide-react";
-import type { Producto } from "@/lib/mock-data";
+import { Heart, MapPin, Bell, Truck } from "lucide-react";
+import type { Producto, DispContexto } from "@/lib/mock-data";
 import { formatMXN, precioConCashback } from "@/lib/mock-data";
 import { useClub } from "@/lib/ClubContext";
 import { track } from "@/lib/analytics";
@@ -14,17 +14,26 @@ import { track } from "@/lib/analytics";
 interface ProductPeekCardProps {
   producto: Producto;
   onClick?: () => void;
-  disponibilidadLabel?: string; // e.g. "Disponible en tu tienda", "Últimas piezas", "Catálogo extendido"
+  contexto?: DispContexto; // single most-relevant availability signal (preferred)
+  disponibilidadLabel?: string; // legacy fallback label
   disponibilidadTono?: "ok" | "low" | "muted";
   poderCompraCashback?: number; // available cashback → shows "Con tu cashback pagarías $X"
 }
 
 const tonoClass = { ok: "text-success-700", low: "text-warning-600", muted: "text-ink-500" } as const;
+// One contextual availability line — colour + icon per tono; physical availability reads positive.
+const ctxStyle: Record<DispContexto["tono"], { cls: string; Icon: typeof MapPin }> = {
+  aqui: { cls: "text-success-700", Icon: MapPin },
+  cerca: { cls: "text-ink-600", Icon: MapPin },
+  avisar: { cls: "text-warning-600", Icon: Bell },
+  envio: { cls: "text-ink-500", Icon: Truck },
+};
 
-export function ProductPeekCard({ producto, onClick, disponibilidadLabel, disponibilidadTono = "ok", poderCompraCashback }: ProductPeekCardProps) {
+export function ProductPeekCard({ producto, onClick, contexto, disponibilidadLabel, disponibilidadTono = "ok", poderCompraCashback }: ProductPeekCardProps) {
   const { esFavorito, toggleFavorito } = useClub();
   const guardado = esFavorito(producto.id);
   const conCashback = poderCompraCashback ? precioConCashback(producto.precio, poderCompraCashback) : null;
+  const ctx = contexto ? ctxStyle[contexto.tono] : null;
 
   return (
     <div
@@ -64,11 +73,19 @@ export function ProductPeekCard({ producto, onClick, disponibilidadLabel, dispon
             {conCashback === 0 ? "✓ Te alcanza con tu cashback" : `Con tu cashback pagarías ${formatMXN(conCashback)}`}
           </p>
         )}
-        {disponibilidadLabel && (
-          <p className={`mt-1 inline-flex items-center gap-1 text-xs font-medium ${tonoClass[disponibilidadTono]}`}>
-            {disponibilidadTono !== "muted" && <span className={`h-1.5 w-1.5 rounded-full ${disponibilidadTono === "low" ? "bg-warning-600" : "bg-success-600"}`} aria-hidden="true" />}
-            {disponibilidadLabel}
+        {/* ONE contextual availability signal (preferred: contexto; else legacy label) */}
+        {ctx && contexto ? (
+          <p className={`mt-1 inline-flex items-center gap-1 text-xs font-medium ${ctx.cls}`}>
+            <ctx.Icon size={12} aria-hidden="true" />
+            {contexto.mensaje}
           </p>
+        ) : (
+          disponibilidadLabel && (
+            <p className={`mt-1 inline-flex items-center gap-1 text-xs font-medium ${tonoClass[disponibilidadTono]}`}>
+              {disponibilidadTono !== "muted" && <span className={`h-1.5 w-1.5 rounded-full ${disponibilidadTono === "low" ? "bg-warning-600" : "bg-success-600"}`} aria-hidden="true" />}
+              {disponibilidadLabel}
+            </p>
+          )
         )}
       </div>
     </div>

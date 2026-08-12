@@ -912,6 +912,54 @@ export function inventarioDeTienda(storeId: string): Producto[] {
   return productosDeTienda(storeId);
 }
 
+// ─────────────────────────── Disponibilidad CONTEXTUAL (talla + tienda) ───────────────────────────
+// A single, most-useful availability signal per product for THIS member: their size, their store,
+// nearby stores, or shipping. The card shows only `mensaje`; `rank` drives catalog/search ordering
+// (lower = easier to get). MOCK — size presence is a deterministic hash, not real inventory.
+export type DispTono = "aqui" | "cerca" | "avisar" | "envio";
+export interface DispContexto {
+  rank: number; // 0 = mi talla+mi tienda … 5 = solo envío
+  tono: DispTono;
+  mensaje: string;
+  tiendaId?: string; // store the message refers to (for "a X km" / Cómo llegar)
+  tallaEnTienda: boolean; // is the member's size in the SELECTED store
+}
+
+function tallaPresente(pid: string, storeId: string, talla: number): boolean {
+  const s = `${pid}|${storeId}|${talla}`;
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+  return h % 10 < 7; // ~70% of the time the size is on shelf
+}
+
+/** The single most relevant availability message for a member (size + selected store aware). */
+export function disponibilidadContextual(p: Producto, storeId: string, tallaMx?: number | null): DispContexto {
+  const esCalzado = (p.tallas?.length ?? 0) > 0;
+  const usaTalla = esCalzado && tallaMx != null;
+  const tallaEnCatalogo = usaTalla && (p.tallas ?? []).includes(tallaMx!);
+  const av = availabilityForStore(p, storeId);
+
+  // In the selected store
+  if (av === "in_store" || av === "low_stock") {
+    if (!usaTalla) return { rank: 0, tono: "aqui", mensaje: "Disponible en tu tienda", tiendaId: storeId, tallaEnTienda: true };
+    if (tallaEnCatalogo && tallaPresente(p.id, storeId, tallaMx!))
+      return { rank: 0, tono: "aqui", mensaje: "Tu talla está aquí", tiendaId: storeId, tallaEnTienda: true };
+    return { rank: 2, tono: "avisar", mensaje: "Avísame cuando llegue tu talla", tiendaId: storeId, tallaEnTienda: false };
+  }
+
+  // Nearest OTHER store that carries it
+  const alt = disponibilidadDeProducto(p).find((d) => d.tienda.id !== storeId)?.tienda;
+  if (alt) {
+    if (!usaTalla) return { rank: 3, tono: "cerca", mensaje: `Disponible a ${alt.distancia}`, tiendaId: alt.id, tallaEnTienda: false };
+    if (tallaEnCatalogo && tallaPresente(p.id, alt.id, tallaMx!))
+      return { rank: 1, tono: "cerca", mensaje: `Tu talla está a ${alt.distancia}`, tiendaId: alt.id, tallaEnTienda: false };
+    return { rank: 4, tono: "cerca", mensaje: `Disponible a ${alt.distancia}`, tiendaId: alt.id, tallaEnTienda: false };
+  }
+
+  // Nowhere physical → shipping
+  return { rank: 5, tono: "envio", mensaje: "Disponible para envío", tallaEnTienda: false };
+}
+
 /** Extended-catalog products for a store: orderable, not physically there ("pide y recoge"). */
 export function catalogoExtendidoDeTienda(storeId: string): Producto[] {
   const enTienda = new Set(productosDeTienda(storeId).map((p) => p.id));
