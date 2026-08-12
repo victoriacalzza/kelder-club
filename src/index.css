@@ -51,6 +51,15 @@
 @layer base {
   html {
     color-scheme: light;
+    /* Mobile-first: never let a stray element widen the layout past the screen */
+    -webkit-text-size-adjust: 100%;
+  }
+
+  html,
+  body,
+  #root {
+    max-width: 100%;
+    overflow-x: hidden;
   }
 
   body {

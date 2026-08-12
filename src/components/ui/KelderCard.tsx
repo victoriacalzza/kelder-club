@@ -42,7 +42,7 @@ export function KelderCard({ cashback, onShowQR, onUse, onStart }: KelderCardPro
         style={{ filter: "drop-shadow(0 24px 38px rgba(0,0,0,0.5))" }}
       />
 
-      <div className="relative p-8 sm:p-10">
+      <div className="relative p-6 sm:p-8 lg:p-10">
         {tieneCashback ? (
           <div className="max-w-[380px]">
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-white/60">Tu cashback disponible</p>

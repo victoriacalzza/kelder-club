@@ -24,7 +24,7 @@ export function StorePreview({ tienda, onDirections, onVerTodas }: { tienda: Tie
           )}
         </div>
 
-        <div className="flex flex-1 flex-col justify-center gap-2 p-6 sm:p-8">
+        <div className="flex flex-1 flex-col justify-center gap-2 p-5 sm:p-8">
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="text-xs font-semibold uppercase tracking-wide text-ink-400">Tu tienda más cercana · {tienda.unidad}</p>

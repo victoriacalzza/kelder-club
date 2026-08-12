@@ -80,18 +80,18 @@ export function Home({ profile = perfilDemo }: { profile?: ClientProfile }) {
         </div>
       )}
 
-      {/* 4 · Recommended for you — cards sit directly on the page, no container */}
-      <section className="mt-14" aria-label="Recomendados para ti">
-        <div className="mb-5 flex items-center justify-between">
+      {/* 4 · Recommended — horizontal swipe carousel on mobile, 4-up grid on desktop */}
+      <section className="mt-12 lg:mt-14" aria-label="Recomendados para ti">
+        <div className="mb-4 flex items-center justify-between lg:mb-5">
           <h2 className="text-lg font-semibold text-ink-900">Recomendados para ti</h2>
           <button onClick={() => navigate("/buscar")} className="inline-flex items-center gap-1 text-sm font-semibold text-kelder-600">
             Explorar productos
             <ArrowRight size={15} aria-hidden="true" />
           </button>
         </div>
-        <div className="flex snap-x gap-4 overflow-x-auto pb-1 lg:grid lg:grid-cols-4 lg:gap-5 lg:overflow-visible">
+        <div className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:gap-4 sm:px-0 lg:grid lg:grid-cols-4 lg:gap-5 lg:overflow-visible [&::-webkit-scrollbar]:hidden">
           {recomendaciones.slice(0, 4).map((p) => (
-            <div key={p.id} className="w-[68%] min-w-[240px] shrink-0 snap-start sm:w-[46%] lg:w-auto lg:min-w-0">
+            <div key={p.id} className="w-[58%] min-w-[168px] max-w-[210px] shrink-0 snap-start sm:w-[46%] sm:max-w-none lg:w-auto lg:min-w-0">
               <ProductCard producto={p} onClick={() => navigate(`/producto/${p.id}`)} />
             </div>
           ))}
@@ -99,12 +99,12 @@ export function Home({ profile = perfilDemo }: { profile?: ClientProfile }) {
       </section>
 
       {/* 5 · Featured campaign — light, photographic, launch theme */}
-      <div className="mt-10">
+      <div className="mt-8 lg:mt-10">
         <PromoBanner campania={campaniaDestacada} onClick={() => navigate("/buscar")} />
       </div>
 
       {/* 6 · Nearest store */}
-      <div className="mt-16">
+      <div className="mt-10 lg:mt-16">
         <StorePreview tienda={tiendaCercana} onDirections={() => navigate("/tiendas")} onVerTodas={() => navigate("/tiendas")} />
       </div>
 

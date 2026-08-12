@@ -21,25 +21,36 @@ export function CreditoKelderHome({ onVer }: { onVer?: () => void }) {
         </div>
       </div>
 
-      {/* financial content — white */}
+      {/* financial content — white. Mobile: vertical (saldo prominent). Desktop: 3 columns. */}
       <div className="p-5 sm:p-6">
-        <div className="grid grid-cols-3 gap-4">
+        {/* mobile */}
+        <div className="sm:hidden">
+          <p className="text-sm text-ink-500">Saldo pendiente</p>
+          <p className="mt-0.5 text-3xl font-semibold tracking-tight text-ink-900">{formatMXN(saldoPendiente)}</p>
+          <p className="mt-1.5 text-sm text-ink-600">
+            Próximo pago <span className="font-semibold text-ink-900">{formatMXN(proximoPago.monto)}</span> · {proximoPago.fecha}
+          </p>
+        </div>
+
+        {/* desktop / tablet */}
+        <div className="hidden grid-cols-3 gap-4 sm:grid">
           <div>
             <p className="text-sm text-ink-500">Saldo pendiente</p>
-            <p className="mt-0.5 text-xl font-semibold tracking-tight text-ink-900 sm:text-2xl">{formatMXN(saldoPendiente)}</p>
+            <p className="mt-0.5 text-2xl font-semibold tracking-tight text-ink-900">{formatMXN(saldoPendiente)}</p>
           </div>
-          <div className="sm:border-l sm:border-ink-100 sm:pl-4">
+          <div className="border-l border-ink-100 pl-4">
             <p className="text-sm text-ink-500">Próximo pago</p>
-            <p className="mt-0.5 text-xl font-semibold text-ink-900 sm:text-2xl">{formatMXN(proximoPago.monto)}</p>
+            <p className="mt-0.5 text-2xl font-semibold text-ink-900">{formatMXN(proximoPago.monto)}</p>
           </div>
-          <div className="sm:border-l sm:border-ink-100 sm:pl-4">
+          <div className="border-l border-ink-100 pl-4">
             <p className="text-sm text-ink-500">Fecha</p>
-            <p className="mt-0.5 text-xl font-semibold text-ink-900 sm:text-2xl">{proximoPago.fecha}</p>
+            <p className="mt-0.5 text-2xl font-semibold text-ink-900">{proximoPago.fecha}</p>
           </div>
         </div>
+
         <button
           onClick={onVer}
-          className="mt-4 inline-flex min-h-[44px] items-center gap-1 text-sm font-semibold text-kelder-600"
+          className="mt-4 inline-flex min-h-[44px] items-center gap-1 text-[15px] font-semibold text-kelder-600"
         >
           Ver mi Crédito Kelder
           <ArrowRight size={15} aria-hidden="true" />

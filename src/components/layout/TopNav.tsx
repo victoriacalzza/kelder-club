@@ -26,7 +26,7 @@ export function TopNav() {
           <img src={logoKelderClub} alt="Kelder Club" className="h-6 w-auto sm:h-7" />
         </NavLink>
 
-        <nav className="flex flex-1 items-center justify-center gap-0.5 overflow-x-auto">
+        <nav className="hidden flex-1 items-center justify-center gap-0.5 overflow-x-auto lg:flex">
           {items.map(({ to, label }) => (
             <NavLink
               key={to}
@@ -48,7 +48,7 @@ export function TopNav() {
           ))}
         </nav>
 
-        <div className="flex shrink-0 items-center gap-1">
+        <div className="ml-auto flex shrink-0 items-center gap-1 lg:ml-0">
           <button
             onClick={() => navigate("/buscar")}
             aria-label="Buscar productos"

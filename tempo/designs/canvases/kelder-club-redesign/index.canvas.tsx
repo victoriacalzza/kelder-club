@@ -26,6 +26,9 @@ import Valesenpagostoryboard from "./ValesEnPagoStoryboard";
 import Valesenpagomobilestoryboard from "./ValesEnPagoMobileStoryboard";
 import Homemobilestoryboard from "./HomeMobileStoryboard";
 import Creditokelderinvitacionmobilestoryboard from "./CreditoKelderInvitacionMobileStoryboard";
+import Mobilenavhomestoryboard from "./MobileNavHomeStoryboard";
+import Mobileclubstoryboard from "./MobileClubStoryboard";
+import Mobilepagarstoryboard from "./MobilePagarStoryboard";
 import Valesextravalesstoryboard from "./ValesExtravalesStoryboard";
 import Extravaledetallestoryboard from "./ExtravaleDetalleStoryboard";
 import Buscarmobilestoryboard from "./BuscarMobileStoryboard";
@@ -119,6 +122,42 @@ export default function KelderClubRedesignCanvas() {
         name="Invitación Crédito Kelder (móvil 390)"
         component={Creditokelderinvitacionmobilestoryboard}
         layout={{ x: 8700, y: 6400, width: 390, height: 620 }}
+      />
+      <Storyboard
+        id="MobileNavHome"
+        name="App móvil · Home + bottom nav (390×844)"
+        component={Mobilenavhomestoryboard}
+        layout={{ x: 9200, y: 6400, width: 390, height: 844 }}
+      />
+      <Storyboard
+        id="MobileHomeFull"
+        name="App móvil · Home completo (390)"
+        component={Mobilenavhomestoryboard}
+        layout={{ x: 10700, y: 6400, width: 390, height: 2160 }}
+      />
+      <Storyboard
+        id="MobileHome360"
+        name="App móvil · Home (360 · iPhone SE/Android)"
+        component={Mobilenavhomestoryboard}
+        layout={{ x: 11200, y: 6400, width: 360, height: 2160 }}
+      />
+      <Storyboard
+        id="HomeTablet768"
+        name="App · Home tablet (768)"
+        component={Mobilenavhomestoryboard}
+        layout={{ x: 11700, y: 6400, width: 768, height: 1500 }}
+      />
+      <Storyboard
+        id="MobileClub"
+        name="App móvil · Mi Club (390×844)"
+        component={Mobileclubstoryboard}
+        layout={{ x: 9700, y: 6400, width: 390, height: 844 }}
+      />
+      <Storyboard
+        id="MobilePagar"
+        name="App móvil · Sheet Pagar (390×844)"
+        component={Mobilepagarstoryboard}
+        layout={{ x: 10200, y: 6400, width: 390, height: 844 }}
       />
       <Storyboard
         id="ValesExtravales"
