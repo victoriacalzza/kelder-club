@@ -821,6 +821,28 @@ export function promoPorId(id?: string): Promocion | undefined {
 // Home "Promociones vigentes" count → feeds the discreet badge in Mi Club.
 export const promocionesActivas = promociones.length;
 
+// ─────────────────────────── Notificaciones (mock) ───────────────────────────
+export type NotificacionTipo = "cashback" | "promo" | "credito" | "pedido" | "tienda";
+export interface Notificacion {
+  id: string;
+  tipo: NotificacionTipo;
+  titulo: string;
+  detalle: string;
+  tiempo: string; // relative label
+  leida: boolean;
+  to?: string; // where tapping it navigates
+}
+
+export const notificaciones: Notificacion[] = [
+  { id: "n1", tipo: "cashback", titulo: "Ganaste $45 de cashback", detalle: "Por tu compra en Calzzapato Galerías. Ya puedes usarlo.", tiempo: "Hace 2 h", leida: false, to: "/cashback" },
+  { id: "n2", tipo: "promo", titulo: "20% en Nike seleccionados", detalle: "Disponible en tu tienda hasta el 16 de agosto.", tiempo: "Hoy", leida: false, to: "/promociones" },
+  { id: "n3", tipo: "pedido", titulo: "Tu pedido va en camino", detalle: "Adidas Ultraboost Light · llega el 9 de agosto.", tiempo: "Ayer", leida: false, to: "/compras" },
+  { id: "n4", tipo: "credito", titulo: "Próximo pago de Crédito Kelder", detalle: "$620 el 18 de agosto. Ten listo tu saldo.", tiempo: "Hace 2 días", leida: true, to: "/vales" },
+  { id: "n5", tipo: "tienda", titulo: "Nuevos ingresos en tu tienda", detalle: "16 novedades llegaron a Calzzapato Galerías.", tiempo: "Hace 3 días", leida: true, to: "/tiendas" },
+];
+
+export const notificacionesNoLeidas = notificaciones.filter((n) => !n.leida).length;
+
 // ─────────────────────────── Disponibilidad por tienda seleccionada ───────────────────────────
 // The selected store is transversal: product surfaces show availability RELATIVE to it.
 // Availability is a small enum so the UI never depends on exact stock numbers; swap the mock

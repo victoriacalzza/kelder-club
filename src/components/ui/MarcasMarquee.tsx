@@ -31,11 +31,11 @@ export function MarcasMarquee({ onSelect }: { onSelect?: (nombre: string) => voi
       <div
         className="marquee-group relative overflow-hidden py-3 sm:py-4"
         style={{
-          maskImage: "linear-gradient(to right, transparent, #000 8%, #000 92%, transparent)",
-          WebkitMaskImage: "linear-gradient(to right, transparent, #000 8%, #000 92%, transparent)",
+          maskImage: "linear-gradient(to right, transparent, #000 4%, #000 96%, transparent)",
+          WebkitMaskImage: "linear-gradient(to right, transparent, #000 4%, #000 96%, transparent)",
         }}
       >
-        <ul className="animate-marquee flex w-max items-center gap-[72px] sm:gap-20">
+        <ul className="animate-marquee flex w-max items-center gap-11 sm:gap-14">
           {secuencia.map((l, i) => (
             <li key={i} className="shrink-0">
               <button

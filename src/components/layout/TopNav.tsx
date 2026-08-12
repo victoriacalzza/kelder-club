@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { Search, Bell } from "lucide-react";
 import { StoreSwitcher } from "@/components/layout/StoreSwitcher";
-import { user } from "@/lib/mock-data";
+import { NotificationsSheet } from "@/components/layout/NotificationsSheet";
+import { user, notificacionesNoLeidas } from "@/lib/mock-data";
 import logoKelderClub from "../../assets/logos/kelder-club.png";
 
 /**
@@ -19,6 +21,7 @@ const items = [
 
 export function TopNav() {
   const navigate = useNavigate();
+  const [notifOpen, setNotifOpen] = useState(false);
 
   return (
     <header className="sticky top-0 z-40 border-b border-ink-100 bg-cream/85 pt-[env(safe-area-inset-top)] backdrop-blur">
@@ -59,9 +62,13 @@ export function TopNav() {
             <span className="hidden text-sm font-medium md:inline">Buscar productos</span>
             <span className="hidden text-sm font-medium sm:inline md:hidden">Buscar</span>
           </button>
-          <button aria-label="Notificaciones" className="relative flex h-11 w-11 items-center justify-center rounded-full text-ink-500 hover:bg-white">
+          <button
+            onClick={() => setNotifOpen(true)}
+            aria-label="Notificaciones"
+            className="relative flex h-11 w-11 items-center justify-center rounded-full text-ink-500 hover:bg-white"
+          >
             <Bell size={20} aria-hidden="true" />
-            <span className="absolute right-3 top-3 h-2 w-2 rounded-full bg-kelder-600" />
+            {notificacionesNoLeidas > 0 && <span className="absolute right-3 top-3 h-2 w-2 rounded-full bg-kelder-600" />}
           </button>
           <NavLink to="/perfil" aria-label="Perfil" className="flex h-11 w-11 items-center justify-center rounded-full">
             <span className="flex h-9 w-9 items-center justify-center rounded-full bg-kelder-50 text-sm font-semibold text-kelder-600">
@@ -77,6 +84,8 @@ export function TopNav() {
           <StoreSwitcher compact />
         </div>
       </div>
+
+      <NotificationsSheet open={notifOpen} onClose={() => setNotifOpen(false)} />
     </header>
   );
 }

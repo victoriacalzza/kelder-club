@@ -76,14 +76,14 @@ export function Home({ profile = perfilDemo }: { profile?: ClientProfile }) {
         <StoreContextModule />
       </div>
 
-      {/* 5 · Promociones — featured campaign, leads to actionable promotions */}
-      <div className="mt-10 lg:mt-12">
-        <PromoBanner campania={campaniaDestacada} onClick={() => navigate("/promociones")} />
+      {/* 5 · Catálogo extendido — natural continuation of the in-store carousel (before any campaign) */}
+      <div className="mt-5">
+        <ExtendedCatalogTeaser />
       </div>
 
-      {/* 6 · Catálogo extendido — discover what can be requested at your store (future pick-up) */}
+      {/* 6 · Promociones — featured campaign, leads to actionable promotions */}
       <div className="mt-12 lg:mt-14">
-        <ExtendedCatalogTeaser />
+        <PromoBanner campania={campaniaDestacada} onClick={() => navigate("/promociones")} />
       </div>
 
       {modal === "qr" && <QRModal onClose={() => setModal(null)} />}
