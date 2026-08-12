@@ -24,7 +24,7 @@ export function Promociones() {
   return (
     <div>
       <BackButton />
-      <TopBar title="Promociones" subtitle="Ofertas vigentes en las tiendas del grupo. Aprovéchalas en tu próxima visita." />
+      <TopBar title="Promociones" subtitle="Promociones exclusivas para disfrutar en nuestras tiendas físicas." />
 
       {/* horizontal filter chips */}
       <div className="-mx-4 mb-5 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:px-0 [&::-webkit-scrollbar]:hidden">
