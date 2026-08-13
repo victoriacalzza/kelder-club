@@ -4,10 +4,9 @@ import { TopBar } from "@/components/layout/TopBar";
 import { BackButton } from "@/components/layout/BackButton";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
+import { ChevronRight } from "lucide-react";
 import { user } from "@/lib/mock-data";
 import { useClub } from "@/lib/ClubContext";
-
-const TALLAS_MX = [22, 23, 24, 25, 26, 27, 28, 29];
 
 interface Section {
   id: string;
@@ -15,6 +14,100 @@ interface Section {
   done: boolean;
   summary: string;
   fields: { label: string; placeholder: string }[];
+}
+
+/**
+ * "Mis tallas" — a quick size preference, NOT the star of the Perfil screen. Collapsed it's a
+ * single compact row summarizing each category; tapping "Editar" reveals a segmented editor
+ * (Calzado | Ropa) so all sizes are never shown at once. New categories (pantalón, infantil,
+ * accesorios) just get added to `CATEGORIAS` — no redesign. Feeds catalog/search/availability.
+ */
+const TALLAS_CALZADO: (string | number)[] = [22, 23, 24, 25, 26, 27, 28, 29];
+const TALLAS_ROPA: (string | number)[] = ["XS", "S", "M", "L", "XL", "XXL"];
+
+function MisTallas() {
+  const { tallaMx, setTallaMx, tallaRopa, setTallaRopa } = useClub();
+  const [open, setOpen] = useState(false);
+  const [cat, setCat] = useState("calzado");
+
+  const CATEGORIAS = [
+    {
+      key: "calzado",
+      label: "Calzado",
+      opciones: TALLAS_CALZADO,
+      sel: tallaMx as string | number | null,
+      set: (v: string | number) => setTallaMx(Number(v)),
+      fmt: (v: string | number) => `${v} MX`,
+    },
+    {
+      key: "ropa",
+      label: "Ropa",
+      opciones: TALLAS_ROPA,
+      sel: tallaRopa as string | number | null,
+      set: (v: string | number) => setTallaRopa(String(v)),
+      fmt: (v: string | number) => String(v),
+    },
+  ];
+  const activa = CATEGORIAS.find((c) => c.key === cat)!;
+
+  return (
+    <div className="mt-4 overflow-hidden rounded-3xl bg-white shadow-soft">
+      <button onClick={() => setOpen((o) => !o)} aria-expanded={open} className="flex w-full items-center gap-3 px-5 py-4 text-left">
+        <div className="min-w-0 flex-1">
+          <p className="font-medium text-ink-900">Mis tallas</p>
+          <p className="mt-0.5 truncate text-sm text-ink-500">
+            {CATEGORIAS.map((c, i) => (
+              <span key={c.key}>
+                {i > 0 && " · "}
+                {c.label} <span className="font-semibold text-ink-900">{c.sel != null ? c.fmt(c.sel) : "—"}</span>
+              </span>
+            ))}
+          </p>
+        </div>
+        <span className="inline-flex shrink-0 items-center gap-0.5 text-sm font-semibold text-kelder-600">
+          {open ? "Listo" : "Editar"}
+          <ChevronRight size={16} className={`transition-transform ${open ? "rotate-90" : ""}`} aria-hidden="true" />
+        </span>
+      </button>
+
+      {open && (
+        <div className="border-t border-ink-100 px-5 py-4">
+          {/* segmented category selector — never shows every size at once */}
+          <div className="inline-flex items-center rounded-full border border-ink-200 bg-white p-0.5">
+            {CATEGORIAS.map((c) => (
+              <button
+                key={c.key}
+                onClick={() => setCat(c.key)}
+                className={`min-h-[34px] rounded-full px-4 text-sm font-medium transition-colors ${
+                  cat === c.key ? "bg-kelder-600 text-white" : "text-ink-600"
+                }`}
+              >
+                {c.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="mt-3 flex flex-wrap gap-2">
+            {activa.opciones.map((t) => {
+              const on = activa.sel === t;
+              return (
+                <button
+                  key={String(t)}
+                  onClick={() => activa.set(t)}
+                  aria-pressed={on}
+                  className={`flex h-11 min-w-[44px] items-center justify-center rounded-xl border px-3 text-sm font-medium transition-colors ${
+                    on ? "border-kelder-600 bg-kelder-600 text-white" : "border-ink-200 text-ink-900 hover:border-ink-300"
+                  }`}
+                >
+                  {t}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
 
 const initialSections: Section[] = [
@@ -42,7 +135,6 @@ const initialSections: Section[] = [
 export function Perfil() {
   const [sections, setSections] = useState(initialSections);
   const [openId, setOpenId] = useState<string | null>(null);
-  const { tallaMx, setTallaMx } = useClub();
 
   const done = sections.filter((s) => s.done).length;
   const percent = Math.round((done / sections.length) * 100);
@@ -67,28 +159,8 @@ export function Perfil() {
         </div>
       </Card>
 
-      {/* Mi talla — set once, remembered, used to personalize catalog/search/availability */}
-      <div className="mt-4 rounded-3xl bg-white p-5 shadow-soft">
-        <div className="flex items-baseline justify-between gap-3">
-          <p className="font-medium text-ink-900">Mi talla</p>
-          <p className="text-sm text-ink-500">{tallaMx != null ? `${tallaMx} MX` : "Sin definir"}</p>
-        </div>
-        <p className="mt-0.5 text-sm text-ink-500">Personaliza tu catálogo, búsqueda y disponibilidad.</p>
-        <div className="mt-3 flex flex-wrap gap-2">
-          {TALLAS_MX.map((t) => (
-            <button
-              key={t}
-              onClick={() => setTallaMx(t)}
-              aria-pressed={tallaMx === t}
-              className={`flex h-11 min-w-[44px] items-center justify-center rounded-xl border px-3 text-sm font-medium transition-colors ${
-                tallaMx === t ? "border-kelder-600 bg-kelder-50 text-kelder-700" : "border-ink-200 text-ink-900 hover:border-ink-300"
-              }`}
-            >
-              {t}
-            </button>
-          ))}
-        </div>
-      </div>
+      {/* Mis tallas — a quick preference, compact by default (one row); grows only when editing */}
+      <MisTallas />
 
       {percent < 100 && (
         <div className="mt-4 rounded-3xl bg-white p-5 shadow-soft">

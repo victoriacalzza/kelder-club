@@ -13,10 +13,13 @@ interface ClubState {
   tiendaPreferidaId: string | null;
   setTiendaPreferida: (id: string | null) => void;
 
-  // The member's habitual footwear size (MX). Set once, remembered, and used to personalize
-  // catalog/search/availability. Null until the member registers it.
+  // The member's habitual sizes. Set once, remembered, used to personalize catalog/search/
+  // availability. `tallaMx` = footwear (MX number); `tallaRopa` = apparel (XS…XXL). More size
+  // categories (pantalón, infantil…) can be added later without reworking consumers.
   tallaMx: number | null;
   setTallaMx: (t: number | null) => void;
+  tallaRopa: string | null;
+  setTallaRopa: (t: string | null) => void;
 
   favoritos: string[]; // product ids
   toggleFavorito: (id: string) => void;
@@ -29,11 +32,14 @@ interface ClubState {
 
 const noop = () => {};
 const DEFAULT_TALLA = 24; // demo default so personalization is visible from the first run
+const DEFAULT_TALLA_ROPA = "M";
 const ClubContext = createContext<ClubState>({
   tiendaPreferidaId: null,
   setTiendaPreferida: noop,
   tallaMx: DEFAULT_TALLA,
   setTallaMx: noop,
+  tallaRopa: DEFAULT_TALLA_ROPA,
+  setTallaRopa: noop,
   favoritos: [],
   toggleFavorito: noop,
   esFavorito: () => false,
@@ -100,6 +106,24 @@ export function ClubProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const [tallaRopa, setTallaRopaState] = useState<string | null>(() => {
+    try {
+      const raw = typeof localStorage !== "undefined" ? localStorage.getItem("kc.tallaRopa") : null;
+      return raw !== null ? raw : DEFAULT_TALLA_ROPA;
+    } catch {
+      return DEFAULT_TALLA_ROPA;
+    }
+  });
+  const setTallaRopa = useCallback((t: string | null) => {
+    setTallaRopaState(t);
+    try {
+      if (t !== null) localStorage.setItem("kc.tallaRopa", t);
+      else localStorage.removeItem("kc.tallaRopa");
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
   const [favoritos, toggleFavorito] = usePersistedList("kc.favoritos");
   const [visita, toggleVisita] = usePersistedList("kc.visita");
 
@@ -109,6 +133,8 @@ export function ClubProvider({ children }: { children: ReactNode }) {
       setTiendaPreferida,
       tallaMx,
       setTallaMx,
+      tallaRopa,
+      setTallaRopa,
       favoritos,
       toggleFavorito,
       esFavorito: (id) => favoritos.includes(id),
@@ -116,7 +142,7 @@ export function ClubProvider({ children }: { children: ReactNode }) {
       toggleVisita,
       enVisita: (id) => visita.includes(id),
     }),
-    [tiendaPreferidaId, setTiendaPreferida, tallaMx, setTallaMx, favoritos, toggleFavorito, visita, toggleVisita],
+    [tiendaPreferidaId, setTiendaPreferida, tallaMx, setTallaMx, tallaRopa, setTallaRopa, favoritos, toggleFavorito, visita, toggleVisita],
   );
 
   return <ClubContext.Provider value={value}>{children}</ClubContext.Provider>;
