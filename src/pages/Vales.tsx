@@ -6,24 +6,23 @@ import {
   CrediValeDisponibleCard,
   CrediValeEnPagoCard,
   CrediValeVencidoCard,
-  ExtravaleCard,
 } from "@/components/ui/CrediValeCard";
 import { CrediValesEmpty } from "@/components/ui/CrediValesEmpty";
 import { CreditoKelderCard } from "@/components/ui/CreditoKelderCard";
 import { vales as valesDefault, creditoKelder, resumenCrediVales, formatMXN, type Vale } from "@/lib/mock-data";
 
 // Main CrediVale navigation prioritizes what the member can act on NOW. Disponibles = UNUSED
-// (usable), En pago = USED (quincenal payments), Extravales = leftover AVAILABLE money (its own
-// tab — high value, never buried), Historial = past/non-actionable (vencidos, utilizados).
-type MainTab = "disponibles" | "en_pago" | "extravales" | "historial";
+// (usable), En pago = USED (quincenal payments), Historial = past/non-actionable (vencidos,
+// utilizados). Extravales get a highlighted top block + their OWN screen (/extravales), so they're
+// highly visible without duplicating the card inside this screen.
+type MainTab = "disponibles" | "en_pago" | "historial";
 type HistFiltro = "todos" | "vencidos" | "utilizados";
 // Legacy tab values (older storyboards) map onto the new structure.
-type InitialTab = MainTab | "vencidos";
+type InitialTab = MainTab | "vencidos" | "extravales";
 
 const mainTabs: { key: MainTab; label: string }[] = [
   { key: "disponibles", label: "Disponibles" },
   { key: "en_pago", label: "En pago" },
-  { key: "extravales", label: "Extravales" },
   { key: "historial", label: "Historial" },
 ];
 const histChips: { key: HistFiltro; label: string; estados: Vale["estado"][] }[] = [
@@ -34,6 +33,7 @@ const histChips: { key: HistFiltro; label: string; estados: Vale["estado"][] }[]
 
 function mapInitial(t: InitialTab): { tab: MainTab; hist: HistFiltro } {
   if (t === "vencidos") return { tab: "historial", hist: "vencidos" };
+  if (t === "extravales") return { tab: "disponibles", hist: "todos" }; // now its own screen
   return { tab: t, hist: "todos" };
 }
 
@@ -66,7 +66,6 @@ export function Vales({
   const cuentaTab: Record<MainTab, number | null> = {
     disponibles: disponiblesList.length,
     en_pago: enPagoList.length,
-    extravales: extravalesList.length,
     historial: null,
   };
 
@@ -104,10 +103,10 @@ export function Vales({
             <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-ink-500">Mis CrediVales</h2>
             <p className="mb-4 mt-1 text-sm text-ink-500">Consulta tus vales, el saldo disponible y los pagos asociados a cada mayorista.</p>
 
-            {/* Extravale highlight — available money, easy to spot without digging into a CrediVale */}
+            {/* Extravale highlight — available money, easy to spot. Opens its OWN screen (no duplicate card here). */}
             {extravalesList.length > 0 && (
               <button
-                onClick={() => setTab("extravales")}
+                onClick={() => navigate("/extravales")}
                 className="mb-4 flex w-full items-center justify-between gap-4 rounded-2xl border border-success-100 bg-success-50 p-4 text-left"
               >
                 <div>
@@ -157,17 +156,6 @@ export function Vales({
                 <EmptyRow>No tienes CrediVales en pago.</EmptyRow>
               ) : (
                 <EnPago lista={enPagoList} onOpen={(id) => navigate(`/vales/${id}`)} />
-              )
-            ) : tab === "extravales" ? (
-              /* Extravales — leftover AVAILABLE money, its own tab so it's never buried */
-              extravalesList.length === 0 ? (
-                <EmptyRow>No tienes Extravales por ahora.</EmptyRow>
-              ) : (
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {extravalesList.map((v) => (
-                    <ExtravaleCard key={v.id} vale={v} onClick={() => navigate(`/vales/${v.id}`)} />
-                  ))}
-                </div>
               )
             ) : (
               /* Historial — secondary sub-filters, then the filtered list */

@@ -65,7 +65,7 @@ export function MiKSheet({ onClose }: { onClose: () => void }) {
           <button
             onClick={() => {
               onClose();
-              navigate("/vales?tab=extravales");
+              navigate("/extravales");
             }}
             className="mt-3 inline-flex min-h-[40px] items-center gap-1.5 text-sm font-semibold text-kelder-600"
           >

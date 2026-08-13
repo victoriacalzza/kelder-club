@@ -16,7 +16,7 @@ const tabs = [
     to: "/vales",
     label: "Crédito y Vales",
     icon: Wallet,
-    match: (p: string) => p.startsWith("/vales") || p.startsWith("/credito"),
+    match: (p: string) => p.startsWith("/vales") || p.startsWith("/credito") || p.startsWith("/extravales"),
   },
   { to: "/tiendas", label: "Tiendas", icon: Store, match: (p: string) => p.startsWith("/tiendas") || p.startsWith("/tienda/") },
   {

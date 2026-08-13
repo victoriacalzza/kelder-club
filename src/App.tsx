@@ -4,6 +4,7 @@ import { NativeBackButton } from "@/components/system/NativeBackButton";
 import { ClubProvider } from "@/lib/ClubContext";
 import { Home } from "@/pages/Home";
 import { Vales } from "@/pages/Vales";
+import { Extravales } from "@/pages/Extravales";
 import { ValeDetail } from "@/pages/ValeDetail";
 import { CreditoDetalle } from "@/pages/CreditoDetalle";
 import { Cashback } from "@/pages/Cashback";
@@ -33,6 +34,7 @@ export default function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/vales" element={<Vales />} />
+            <Route path="/extravales" element={<Extravales />} />
             <Route path="/vales/:id" element={<ValeDetail />} />
             <Route path="/credito" element={<CreditoDetalle />} />
             <Route path="/cashback" element={<Cashback />} />
