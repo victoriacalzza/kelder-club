@@ -9,6 +9,14 @@ import { createContext, useContext, useCallback, useEffect, useMemo, useState, t
  * A safe default value lets components read the context outside a provider (e.g. isolated
  * storyboards) without crashing — collections just won't persist there.
  */
+export type TallaSistema = "MX" | "US" | "EU";
+export interface Medidas {
+  estatura?: number;
+  cintura?: number;
+  cadera?: number;
+  pecho?: number;
+}
+
 interface ClubState {
   tiendaPreferidaId: string | null;
   setTiendaPreferida: (id: string | null) => void;
@@ -20,6 +28,10 @@ interface ClubState {
   setTallaMx: (t: number | null) => void;
   tallaRopa: string | null;
   setTallaRopa: (t: string | null) => void;
+  tallaSistema: TallaSistema; // display system for footwear (value is always stored as MX)
+  setTallaSistema: (s: TallaSistema) => void;
+  medidas: Medidas; // optional body measurements to improve size recommendations
+  setMedidas: (m: Medidas) => void;
 
   favoritos: string[]; // product ids
   toggleFavorito: (id: string) => void;
@@ -40,6 +52,10 @@ const ClubContext = createContext<ClubState>({
   setTallaMx: noop,
   tallaRopa: DEFAULT_TALLA_ROPA,
   setTallaRopa: noop,
+  tallaSistema: "MX",
+  setTallaSistema: noop,
+  medidas: {},
+  setMedidas: noop,
   favoritos: [],
   toggleFavorito: noop,
   esFavorito: () => false,
@@ -124,6 +140,40 @@ export function ClubProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const [tallaSistema, setTallaSistemaState] = useState<TallaSistema>(() => {
+    try {
+      const raw = typeof localStorage !== "undefined" ? localStorage.getItem("kc.tallaSistema") : null;
+      return raw === "US" || raw === "EU" ? raw : "MX";
+    } catch {
+      return "MX";
+    }
+  });
+  const setTallaSistema = useCallback((s: TallaSistema) => {
+    setTallaSistemaState(s);
+    try {
+      localStorage.setItem("kc.tallaSistema", s);
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  const [medidas, setMedidasState] = useState<Medidas>(() => {
+    try {
+      const raw = typeof localStorage !== "undefined" ? localStorage.getItem("kc.medidas") : null;
+      return raw ? (JSON.parse(raw) as Medidas) : {};
+    } catch {
+      return {};
+    }
+  });
+  const setMedidas = useCallback((m: Medidas) => {
+    setMedidasState(m);
+    try {
+      localStorage.setItem("kc.medidas", JSON.stringify(m));
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
   const [favoritos, toggleFavorito] = usePersistedList("kc.favoritos");
   const [visita, toggleVisita] = usePersistedList("kc.visita");
 
@@ -135,6 +185,10 @@ export function ClubProvider({ children }: { children: ReactNode }) {
       setTallaMx,
       tallaRopa,
       setTallaRopa,
+      tallaSistema,
+      setTallaSistema,
+      medidas,
+      setMedidas,
       favoritos,
       toggleFavorito,
       esFavorito: (id) => favoritos.includes(id),
@@ -142,7 +196,7 @@ export function ClubProvider({ children }: { children: ReactNode }) {
       toggleVisita,
       enVisita: (id) => visita.includes(id),
     }),
-    [tiendaPreferidaId, setTiendaPreferida, tallaMx, setTallaMx, tallaRopa, setTallaRopa, favoritos, toggleFavorito, visita, toggleVisita],
+    [tiendaPreferidaId, setTiendaPreferida, tallaMx, setTallaMx, tallaRopa, setTallaRopa, tallaSistema, setTallaSistema, medidas, setMedidas, favoritos, toggleFavorito, visita, toggleVisita],
   );
 
   return <ClubContext.Provider value={value}>{children}</ClubContext.Provider>;

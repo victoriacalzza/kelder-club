@@ -13,6 +13,7 @@ import { CompraDetalle } from "@/pages/CompraDetalle";
 import { Tiendas } from "@/pages/Tiendas";
 import { TiendaDetalle } from "@/pages/TiendaDetalle";
 import { Perfil } from "@/pages/Perfil";
+import { ConfigurarTallas } from "@/pages/ConfigurarTallas";
 import { Club } from "@/pages/Club";
 import { Proximamente } from "@/pages/Proximamente";
 import { Buscar } from "@/pages/Buscar";
@@ -43,6 +44,7 @@ export default function App() {
             <Route path="/tiendas" element={<Tiendas />} />
             <Route path="/tienda/:id" element={<TiendaDetalle />} />
             <Route path="/perfil" element={<Perfil />} />
+            <Route path="/configurar-tallas" element={<ConfigurarTallas />} />
             <Route path="/club" element={<Club />} />
             <Route path="/proximamente/:slug" element={<Proximamente />} />
             <Route path="/buscar" element={<Buscar />} />

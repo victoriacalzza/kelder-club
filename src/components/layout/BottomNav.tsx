@@ -24,7 +24,7 @@ const tabs = [
     label: "Mi Club",
     icon: Sparkles,
     match: (p: string) =>
-      ["/club", "/cashback", "/compras", "/perfil", "/proximamente", "/promociones", "/promocion", "/favoritos", "/mi-visita"].some((r) =>
+      ["/club", "/cashback", "/compras", "/perfil", "/configurar-tallas", "/proximamente", "/promociones", "/promocion", "/favoritos", "/mi-visita"].some((r) =>
         p.startsWith(r),
       ),
   },
