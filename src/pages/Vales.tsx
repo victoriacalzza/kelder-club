@@ -205,6 +205,7 @@ function EmptyRow({ children }: { children: React.ReactNode }) {
 
 function EnPago({ lista, onOpen }: { lista: Vale[]; onOpen: (id: string) => void }) {
   const { saldoPendiente, proximaQuincena, proximaFecha } = resumenCrediVales;
+  const [expandido, setExpandido] = useState<string | null>(null);
   // Each CrediVale is a debt with a DIFFERENT mayorista — the summary must break the fortnight
   // down per mayorista, not only show a consolidated total.
   const quincena = lista.filter((v) => v.proximoPago?.fecha === proximaFecha);
@@ -237,10 +238,16 @@ function EnPago({ lista, onOpen }: { lista: Vale[]; onOpen: (id: string) => void
         </div>
       </div>
 
-      {/* The CrediVales themselves — compact cards keep each mayorista's name + amounts, detail on demand */}
-      <div className="grid gap-4 sm:grid-cols-2">
+      {/* Accordion — collapsed by default, one expanded at a time; several visible without saturating */}
+      <div className="grid gap-3 sm:grid-cols-2">
         {lista.map((v) => (
-          <CrediValeEnPagoCard key={v.id} vale={v} onClick={() => onOpen(v.id)} />
+          <CrediValeEnPagoCard
+            key={v.id}
+            vale={v}
+            expanded={expandido === v.id}
+            onToggle={() => setExpandido((cur) => (cur === v.id ? null : v.id))}
+            onVerDetalle={() => onOpen(v.id)}
+          />
         ))}
       </div>
     </div>

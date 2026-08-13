@@ -1,4 +1,4 @@
-import { ChevronRight, User, Sparkles } from "lucide-react";
+import { ChevronRight, ChevronDown, User, Sparkles } from "lucide-react";
 import { StatusPill } from "@/components/ui/StatusPill";
 import { formatMXN, type Vale } from "@/lib/mock-data";
 import logoCredivale from "../../assets/logos/credivale.png";
@@ -55,58 +55,82 @@ export function CrediValeDisponibleCard({ vale, onClick }: { vale: Vale; onClick
   );
 }
 
-/** EN PAGO — used voucher. Deliberately SHORT: folio + mayorista, next payment, pending balance,
- *  progress, "Ver detalle". Everything else (calendar, breakdown) lives in the detail (Level 3). */
-export function CrediValeEnPagoCard({ vale, onClick }: { vale: Vale; onClick?: () => void }) {
+/**
+ * EN PAGO — expandable/collapsible (accordion) card. COLLAPSED shows only the essentials: folio,
+ * mayorista, "En pago" pill, next payment + date, pending balance, and a summarized progress
+ * ("2 de 4 pagos"). EXPANDED adds the progress bar and "Ver detalle" (calendar/history). Only one
+ * card is expanded at a time (state owned by the parent). Progressive disclosure: what/when/whom
+ * first, the rest on demand.
+ */
+export function CrediValeEnPagoCard({
+  vale,
+  expanded = false,
+  onToggle,
+  onVerDetalle,
+}: {
+  vale: Vale;
+  expanded?: boolean;
+  onToggle?: () => void;
+  onVerDetalle?: () => void;
+}) {
   const progreso = vale.pagoActual !== undefined && vale.pagosTotales !== undefined
     ? Math.round(((vale.pagoActual - 1) / vale.pagosTotales) * 100)
     : 0;
 
   return (
-    <button
-      onClick={onClick}
-      className="group flex w-full flex-col rounded-2xl border border-ink-100 bg-white p-5 text-left transition-shadow hover:shadow-soft"
-    >
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="font-mono text-sm text-ink-600">{vale.folio}</p>
+    <div className="overflow-hidden rounded-2xl border border-ink-100 bg-white">
+      {/* Collapsed header — tap (or chevron) toggles */}
+      <button onClick={onToggle} aria-expanded={expanded} className="flex w-full items-start gap-3 p-4 text-left">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center justify-between gap-2">
+            <p className="font-mono text-sm text-ink-600">{vale.folio}</p>
+            <StatusPill estado={vale.estado} />
+          </div>
           <p className="mt-0.5 inline-flex items-center gap-1.5 text-[15px] font-semibold text-ink-900">
             <User size={14} className="text-ink-400" aria-hidden="true" />
             {vale.mayoristaPersona}
           </p>
-        </div>
-        <StatusPill estado={vale.estado} />
-      </div>
 
-      <div className="mt-4 grid grid-cols-2 gap-4">
-        <div>
-          <p className="text-xs text-ink-500">Próximo pago</p>
-          <p className="mt-0.5 text-[15px] font-semibold text-ink-900">
-            {formatMXN(vale.proximoPago?.monto ?? 0)} · {vale.proximoPago?.fecha ?? "—"}
-          </p>
-        </div>
-        <div>
-          <p className="text-xs text-ink-500">Saldo pendiente</p>
-          <p className="mt-0.5 text-[15px] font-semibold text-ink-900">{formatMXN(vale.saldoPendiente ?? 0)}</p>
-        </div>
-      </div>
-
-      {vale.pagoActual !== undefined && vale.pagosTotales !== undefined && (
-        <div className="mt-4 flex items-center gap-3">
-          <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-ink-100">
-            <div className="h-full rounded-full bg-kelder-600" style={{ width: `${progreso}%` }} />
+          <div className="mt-3 grid grid-cols-2 gap-4">
+            <div>
+              <p className="text-xs text-ink-500">Próximo pago</p>
+              <p className="mt-0.5 text-[15px] font-semibold text-ink-900">
+                {formatMXN(vale.proximoPago?.monto ?? 0)} · {vale.proximoPago?.fecha ?? "—"}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-ink-500">Saldo pendiente</p>
+              <p className="mt-0.5 text-[15px] font-semibold text-ink-900">{formatMXN(vale.saldoPendiente ?? 0)}</p>
+            </div>
           </div>
-          <span className="shrink-0 text-xs text-ink-500">
-            {vale.pagoActual} de {vale.pagosTotales} pagos
-          </span>
-        </div>
-      )}
 
-      <span className="mt-4 inline-flex items-center gap-1 border-t border-ink-100 pt-3 text-sm font-semibold text-kelder-600">
-        Ver detalle
-        <ChevronRight size={15} aria-hidden="true" />
-      </span>
-    </button>
+          {vale.pagoActual !== undefined && vale.pagosTotales !== undefined && (
+            <p className="mt-2 text-xs text-ink-500">{vale.pagoActual} de {vale.pagosTotales} pagos</p>
+          )}
+        </div>
+        <ChevronDown size={20} className={`mt-0.5 shrink-0 text-ink-400 transition-transform ${expanded ? "rotate-180" : ""}`} aria-hidden="true" />
+      </button>
+
+      {/* Expanded content — smooth height transition (grid-rows trick) */}
+      <div className={`grid transition-[grid-template-rows] duration-300 ease-out ${expanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}>
+        <div className="overflow-hidden">
+          <div className="border-t border-ink-100 px-4 pb-4 pt-3">
+            {vale.pagoActual !== undefined && vale.pagosTotales !== undefined && (
+              <div className="flex items-center gap-3">
+                <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-ink-100">
+                  <div className="h-full rounded-full bg-kelder-600" style={{ width: `${progreso}%` }} />
+                </div>
+                <span className="shrink-0 text-xs text-ink-500">{vale.pagoActual} de {vale.pagosTotales} pagos</span>
+              </div>
+            )}
+            <button onClick={onVerDetalle} className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-kelder-600">
+              Ver detalle
+              <ChevronRight size={15} aria-hidden="true" />
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 
