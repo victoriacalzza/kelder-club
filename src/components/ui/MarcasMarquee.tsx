@@ -25,28 +25,29 @@ export function MarcasMarquee({ onSelect }: { onSelect?: (nombre: string) => voi
   const secuencia = [...logos, ...logos];
 
   return (
-    <section aria-label="Unidades de negocio del grupo" className="py-2 sm:py-3">
-      <p className="mb-5 text-sm font-medium text-ink-500 sm:mb-6">Compra y disfruta tus beneficios en:</p>
+    <section aria-label="Unidades de negocio del grupo" className="py-1 sm:py-1.5">
+      <p className="mb-3 text-sm font-medium text-ink-500 sm:mb-3.5">Compra y disfruta tus beneficios en:</p>
 
       <div
-        className="marquee-group relative overflow-hidden py-3 sm:py-4"
+        className="marquee-group relative overflow-hidden py-1.5 sm:py-2"
         style={{
           maskImage: "linear-gradient(to right, transparent, #000 4%, #000 96%, transparent)",
           WebkitMaskImage: "linear-gradient(to right, transparent, #000 4%, #000 96%, transparent)",
         }}
       >
-        <ul className="animate-marquee flex w-max items-center gap-11 sm:gap-14">
+        {/* Secondary content — smaller monochrome marks, generous spacing, never competes with the Cashback card */}
+        <ul className="animate-marquee flex w-max items-center gap-12 sm:gap-16">
           {secuencia.map((l, i) => (
             <li key={i} className="shrink-0">
               <button
                 onClick={() => onSelect?.(l.nombre)}
                 aria-label={`Explorar ${l.nombre}`}
-                className="group flex h-7 items-center"
+                className="group flex h-5 items-center"
               >
                 <img
                   src={l.src}
                   alt={l.nombre}
-                  className="h-7 w-auto max-w-[150px] object-contain opacity-40 transition-opacity duration-200 group-hover:opacity-100"
+                  className="h-5 w-auto max-w-[112px] object-contain opacity-40 transition-opacity duration-200 group-hover:opacity-100"
                   style={{ filter: "brightness(0)" }}
                 />
               </button>
