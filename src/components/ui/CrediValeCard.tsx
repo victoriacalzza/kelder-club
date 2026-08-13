@@ -18,36 +18,39 @@ export function CrediValeLogo({ className = "h-6" }: { className?: string }) {
  * EN PAGO one is all about its quincenal payments. Never mix Crédito Kelder data in here.
  */
 
-/** DISPONIBLE — unused voucher. Communicates only how much can be used, mayorista, validity. */
+/** DISPONIBLE — unused voucher. COMPACT: small logo + folio, "Disponible" pill, the available
+ *  amount as the hero, and mayorista/validity in a second column. ~35% shorter so two cards fit. */
 export function CrediValeDisponibleCard({ vale, onClick }: { vale: Vale; onClick?: () => void }) {
   return (
     <button
       onClick={onClick}
-      className="group flex w-full flex-col rounded-2xl border border-ink-100 bg-white p-5 text-left transition-shadow hover:shadow-soft"
+      className="group flex w-full flex-col rounded-2xl border border-ink-100 bg-white p-4 text-left transition-shadow hover:shadow-soft"
     >
-      <div className="flex items-center justify-between gap-3">
-        <CrediValeLogo />
+      {/* Secondary identification: small logo + folio, status on the right */}
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex min-w-0 items-center gap-2">
+          <CrediValeLogo className="h-3.5" />
+          <span className="font-mono text-xs tracking-wide text-ink-500">{vale.folio}</span>
+        </div>
         <StatusPill estado={vale.estado} />
       </div>
 
-      <span className="mt-4 inline-flex w-fit items-center rounded-full bg-ink-50 px-3 py-1 font-mono text-sm tracking-wide text-ink-600">
-        {vale.folio}
-      </span>
-
-      <p className="mt-4 text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-400">Puedes utilizar hasta</p>
-      <p className="mt-0.5 text-3xl font-semibold tracking-tight text-ink-900">{formatMXN(vale.monto)}</p>
-
-      <div className="mt-3 space-y-1 text-sm">
-        <p className="inline-flex items-center gap-1.5 text-ink-500">
-          <User size={14} className="text-ink-400" aria-hidden="true" />
-          Mayorista <span className="font-medium text-ink-900">{vale.mayoristaPersona}</span>
-        </p>
-        <p className="text-ink-500">
-          Vigente hasta <span className="font-medium text-ink-700">{vale.fechaVigencia}</span>
-        </p>
+      {/* Two columns: the amount (hero) vs. mayorista + validity */}
+      <div className="mt-3 flex items-end justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-400">Disponible</p>
+          <p className="mt-0.5 text-2xl font-semibold tracking-tight text-ink-900">{formatMXN(vale.monto)}</p>
+        </div>
+        <div className="shrink-0 text-right text-sm">
+          <p className="inline-flex items-center gap-1 text-ink-900">
+            <User size={13} className="text-ink-400" aria-hidden="true" />
+            <span className="font-medium">{vale.mayoristaPersona}</span>
+          </p>
+          <p className="mt-0.5 text-xs text-ink-500">Vigente hasta {vale.fechaVigencia}</p>
+        </div>
       </div>
 
-      <span className="mt-4 inline-flex items-center gap-1 border-t border-ink-100 pt-3 text-sm font-semibold text-kelder-600">
+      <span className="mt-3 inline-flex items-center gap-1 border-t border-ink-100 pt-2.5 text-sm font-semibold text-kelder-600">
         Ver CrediVale
         <ChevronRight size={15} aria-hidden="true" />
       </span>
