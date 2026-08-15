@@ -30,11 +30,13 @@ import calzzasport from "../assets/logos/calzzasport.png";
 import calzakids from "../assets/logos/calzakids.png";
 
 /* ═══════════════════════ type + layout tokens ═══════════════════════ */
-const h1: CSSProperties = { fontSize: "clamp(2.75rem, 6.2vw, 4.75rem)", lineHeight: 1.02, letterSpacing: "-0.025em", fontWeight: 600 };
-const h2: CSSProperties = { fontSize: "clamp(2rem, 4.6vw, 3.4rem)", lineHeight: 1.05, letterSpacing: "-0.02em", fontWeight: 600 };
-const h3: CSSProperties = { fontSize: "clamp(1.45rem, 2.4vw, 2rem)", lineHeight: 1.1, letterSpacing: "-0.01em", fontWeight: 600 };
+// Mobile-first: los mínimos del clamp están calibrados para 375–430 px (sin desbordes),
+// y crecen progresivamente hacia tablet/desktop.
+const h1: CSSProperties = { fontSize: "clamp(2.05rem, 8vw, 4.75rem)", lineHeight: 1.05, letterSpacing: "-0.02em", fontWeight: 600 };
+const h2: CSSProperties = { fontSize: "clamp(1.7rem, 5.2vw, 3.4rem)", lineHeight: 1.08, letterSpacing: "-0.02em", fontWeight: 600 };
+const h3: CSSProperties = { fontSize: "clamp(1.4rem, 2.4vw, 2rem)", lineHeight: 1.12, letterSpacing: "-0.01em", fontWeight: 600 };
 const lead: CSSProperties = { fontSize: "clamp(1.0625rem, 1.25vw, 1.25rem)", lineHeight: 1.6 };
-const sectionPad: CSSProperties = { paddingBlock: "clamp(3rem, 7vw, 6.5rem)" };
+const sectionPad: CSSProperties = { paddingBlock: "clamp(2.75rem, 7vw, 6.5rem)" };
 const sectionPadCompact: CSSProperties = { paddingBlock: "clamp(2.25rem, 4.5vw, 4rem)" };
 
 function Container({ children, className = "" }: { children: ReactNode; className?: string }) {
@@ -42,6 +44,19 @@ function Container({ children, className = "" }: { children: ReactNode; classNam
 }
 function Eyebrow({ children, className = "" }: { children: ReactNode; className?: string }) {
   return <p className={`text-xs font-semibold uppercase tracking-[0.22em] text-kelder-600 ${className}`}>{children}</p>;
+}
+
+/* ═══════════════════════ media query hook (mobile-first) ═══════════════════════ */
+function useMinWidth(px: number) {
+  const [match, setMatch] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia(`(min-width: ${px}px)`);
+    const on = () => setMatch(mq.matches);
+    on();
+    mq.addEventListener("change", on);
+    return () => mq.removeEventListener("change", on);
+  }, [px]);
+  return match;
 }
 
 /* ═══════════════════════ scroll reveal ═══════════════════════ */
@@ -288,6 +303,8 @@ const marcas = [
 
 export function Landing() {
   const [menu, setMenu] = useState(false);
+  const isSm = useMinWidth(640); // Tailwind `sm`
+  const heroPhoneW = isSm ? 252 : 208; // teléfono del hero: proporcional en móvil
   return (
     <div className="min-h-screen w-full overflow-x-clip bg-white text-ink-900" style={{ scrollBehavior: "smooth" }}>
       {/* ───────── Header ───────── */}
@@ -338,21 +355,21 @@ export function Landing() {
         {/* ═══════════ 1 · HERO ═══════════ */}
         <section className="relative overflow-hidden bg-white">
           <Container>
-            <div className="grid items-center gap-10 pb-16 pt-12 md:min-h-[82vh] md:grid-cols-[1.05fr_1fr] md:gap-6 md:py-8">
+            <div className="grid items-center gap-8 pb-12 pt-9 sm:pb-16 sm:pt-12 md:min-h-[82vh] md:grid-cols-[1.05fr_1fr] md:gap-6 md:py-8">
               {/* left */}
               <Reveal className="relative z-10 max-w-xl">
                 <Eyebrow>Kelder Club+</Eyebrow>
-                <h1 style={h1} className="mt-5 text-ink-900 text-balance">
+                <h1 style={h1} className="mt-4 text-ink-900 text-balance sm:mt-5">
                   Comprar tiene más beneficios. <span className="text-kelder-600">Muchos más.</span>
                 </h1>
-                <p style={lead} className="mt-7 max-w-xl text-ink-600">
+                <p style={lead} className="mt-5 max-w-xl text-ink-600 sm:mt-7">
                   Descubre productos, encuentra tu talla, acumula puntos y lleva tus compras, crédito y vales contigo.
                 </p>
-                <div className="mt-10 flex flex-col gap-3 sm:flex-row">
-                  <Link to="/login" className="lift inline-flex min-h-[54px] items-center justify-center rounded-full bg-kelder-600 px-8 text-base font-semibold text-white hover:bg-kelder-700">
+                <div className="mt-8 flex flex-col gap-3 sm:mt-10 sm:flex-row">
+                  <Link to="/login" className="lift inline-flex min-h-[54px] w-full items-center justify-center rounded-full bg-kelder-600 px-8 text-base font-semibold text-white hover:bg-kelder-700 sm:w-auto">
                     Crear mi cuenta
                   </Link>
-                  <Link to="/tiendas" className="inline-flex min-h-[54px] items-center justify-center rounded-full border border-ink-200 px-8 text-base font-semibold text-ink-900 hover:bg-ink-50">
+                  <Link to="/tiendas" className="inline-flex min-h-[54px] w-full items-center justify-center rounded-full border border-ink-200 px-8 text-base font-semibold text-ink-900 hover:bg-ink-50 sm:w-auto">
                     Encontrar una tienda
                   </Link>
                 </div>
@@ -360,26 +377,26 @@ export function Landing() {
 
               {/* right — phone integrated in a warm panel with floating chips + product */}
               <Reveal delay={140} className="relative">
-                <div className="relative mx-auto aspect-[4/5] w-full max-w-[520px] overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-kelder-50 via-cream to-white ring-1 ring-ink-100">
+                <div className="relative mx-auto aspect-[4/5] w-full max-w-[520px] overflow-hidden rounded-[2rem] bg-gradient-to-br from-kelder-50 via-cream to-white ring-1 ring-ink-100 sm:rounded-[2.5rem]">
                   {/* product accent */}
-                  <img src={prodNb530} alt="" className="pointer-events-none absolute -left-10 bottom-6 w-56 -rotate-12 opacity-95 drop-shadow-xl sm:w-64" />
+                  <img src={prodNb530} alt="" className="pointer-events-none absolute -left-8 bottom-6 w-44 -rotate-12 opacity-95 drop-shadow-xl sm:-left-10 sm:w-64" />
                   {/* phone */}
-                  <div className="absolute right-4 top-1/2 -translate-y-1/2 sm:right-8">
-                    <PhoneMock w={252}>
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 sm:right-8">
+                    <PhoneMock w={heroPhoneW}>
                       <HomeMock />
                     </PhoneMock>
                   </div>
                 </div>
                 {/* floating chips — máximo 2, sin badges promocionales contradictorios */}
-                <Chip className="left-1 top-8 sm:-left-3">
-                  <p className="text-lg font-semibold leading-tight text-ink-900">$245 disponibles</p>
-                  <p className="text-xs font-medium text-ink-500">245 puntos Kelder Club+</p>
+                <Chip className="left-1 top-6 px-3 py-2 sm:-left-3 sm:top-8 sm:px-4 sm:py-2.5">
+                  <p className="text-base font-semibold leading-tight text-ink-900 sm:text-lg">$245 disponibles</p>
+                  <p className="text-[11px] font-medium text-ink-500 sm:text-xs">245 puntos Kelder Club+</p>
                 </Chip>
-                <Chip className="-bottom-3 right-2 flex items-center gap-2 sm:right-6">
+                <Chip className="-bottom-2 right-1 flex items-center gap-2 px-3 py-2 sm:-bottom-3 sm:right-6 sm:px-4 sm:py-2.5">
                   <span className="flex h-6 w-6 items-center justify-center rounded-full bg-success-100 text-success-700">
                     <Check size={14} aria-hidden="true" />
                   </span>
-                  <span className="text-sm font-semibold text-ink-900">Tu talla está aquí</span>
+                  <span className="text-[13px] font-semibold text-ink-900 sm:text-sm">Tu talla está aquí</span>
                 </Chip>
               </Reveal>
             </div>
@@ -395,22 +412,22 @@ export function Landing() {
                 Tus compras, recompensadas.
               </h2>
             </Reveal>
-            <div className="mt-12 grid gap-x-8 gap-y-12 sm:grid-cols-2 lg:mt-16">
+            <div className="mt-9 grid grid-cols-2 gap-x-5 gap-y-8 sm:gap-x-8 lg:mt-14">
               {[
-                { big: "$50", t: "de bienvenida" },
+                { big: "$50", t: "en puntos de bienvenida" },
                 { big: "10%", t: "en tu primera compra*" },
               ].map((b, i) => (
-                <Reveal key={b.big} delay={i * 100} className="border-t border-white/15 pt-6">
-                  <p style={{ fontSize: "clamp(4rem, 9vw, 7.5rem)", lineHeight: 0.9, letterSpacing: "-0.03em", fontWeight: 600 }}>{b.big}</p>
-                  <p className="mt-4 max-w-[16rem] text-lg text-white/70">{b.t}</p>
+                <Reveal key={b.big} delay={i * 100} className="border-t border-white/15 pt-5 sm:pt-6">
+                  <p style={{ fontSize: "clamp(2.9rem, 11vw, 7.5rem)", lineHeight: 0.92, letterSpacing: "-0.03em", fontWeight: 600 }}>{b.big}</p>
+                  <p className="mt-3 max-w-[16rem] text-[15px] text-white/70 sm:mt-4 sm:text-lg">{b.t}</p>
                 </Reveal>
               ))}
             </div>
             <Reveal>
-              <div className="mt-14 max-w-2xl border-t border-white/15 pt-8">
-                <p className="text-xl font-semibold text-white sm:text-2xl">Sigue acumulando con cada compra.</p>
-                <p className="mt-3 text-base leading-relaxed text-white/70">Después de tu primera compra acumulas 1% en puntos Kelder Club+.</p>
-                <p className="mt-6 text-sm leading-relaxed text-white/45">
+              <div className="mt-10 max-w-2xl border-t border-white/15 pt-6 sm:mt-14 sm:pt-8">
+                <p className="text-lg font-semibold text-white sm:text-2xl">Y sigue acumulando puntos con tus compras.</p>
+                <p className="mt-2.5 text-[15px] leading-relaxed text-white/70 sm:text-base">Después de tu primera compra acumulas 1% en puntos Kelder Club+.</p>
+                <p className="mt-5 text-[13px] leading-relaxed text-white/45 sm:text-sm">
                   * Sujeto a las políticas del programa. 1 punto Kelder Club+ equivale a $1 peso en beneficios.
                 </p>
               </div>
@@ -676,23 +693,25 @@ export function Landing() {
               </Reveal>
             </div>
 
-            {/* 3 phones */}
+            {/* 3 phones — el cluster se escala en bloque para móvil (proporcional, sin desbordes) */}
             <Reveal delay={120}>
-              <div className="relative mx-auto mt-12 flex h-[540px] max-w-4xl items-center justify-center sm:h-[620px]">
-                <div className="absolute left-1/2 -translate-x-[94%] rotate-[-9deg] sm:-translate-x-[112%]">
-                  <PhoneMock w={248}>
-                    <ValesMock />
-                  </PhoneMock>
-                </div>
-                <div className="absolute left-1/2 -translate-x-[6%] rotate-[9deg] sm:translate-x-[12%]">
-                  <PhoneMock w={248}>
-                    <QRMock />
-                  </PhoneMock>
-                </div>
-                <div className="relative z-10">
-                  <PhoneMock w={292}>
-                    <HomeMock />
-                  </PhoneMock>
+              <div className="relative mx-auto mt-9 h-[400px] max-w-4xl sm:mt-12 sm:h-[620px]">
+                <div className="absolute inset-0 flex origin-center scale-[0.62] items-center justify-center sm:scale-100">
+                  <div className="absolute left-1/2 -translate-x-[94%] rotate-[-9deg] sm:-translate-x-[112%]">
+                    <PhoneMock w={248}>
+                      <ValesMock />
+                    </PhoneMock>
+                  </div>
+                  <div className="absolute left-1/2 -translate-x-[6%] rotate-[9deg] sm:translate-x-[12%]">
+                    <PhoneMock w={248}>
+                      <QRMock />
+                    </PhoneMock>
+                  </div>
+                  <div className="relative z-10">
+                    <PhoneMock w={292}>
+                      <HomeMock />
+                    </PhoneMock>
+                  </div>
                 </div>
                 {/* Mi K identification badge, near the QR phone */}
                 <div className="absolute right-0 top-8 z-30 hidden max-w-[220px] rounded-2xl bg-white px-4 py-3 shadow-modal lg:block">
@@ -770,15 +789,14 @@ export function Landing() {
         <section className="bg-kelder-600 text-white" style={sectionPad}>
           <Container>
             <Reveal className="mx-auto max-w-3xl text-center">
-              <span className="inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-2 text-sm font-semibold">🎁 Recibe $50 en puntos de bienvenida</span>
-              <h2 style={h1} className="mx-auto mt-7 max-w-3xl text-balance">
-                Tus compras pueden darte mucho más.
+              <h2 style={h2} className="mx-auto max-w-2xl text-balance">
+                Haz que tu próxima compra cuente.
               </h2>
-              <p style={lead} className="mx-auto mt-6 max-w-xl text-white/85">
-                Únete gratis a Kelder Club+ y empieza a disfrutar tus beneficios.
+              <p style={lead} className="mx-auto mt-5 max-w-xl text-white/85 sm:mt-6">
+                Únete gratis a Kelder Club+ y lleva tus beneficios siempre contigo.
               </p>
-              <div className="mt-10 flex flex-col items-center gap-4">
-                <Link to="/login" className="lift inline-flex min-h-[56px] items-center justify-center rounded-full bg-white px-10 text-base font-semibold text-kelder-700 hover:bg-white/90">
+              <div className="mt-8 flex flex-col items-center gap-4 sm:mt-10">
+                <Link to="/login" className="lift inline-flex min-h-[56px] w-full max-w-xs items-center justify-center rounded-full bg-white px-10 text-base font-semibold text-kelder-700 hover:bg-white/90 sm:w-auto">
                   Crear mi cuenta
                 </Link>
                 <Link to="/login" className="text-sm font-medium text-white/85 underline underline-offset-4 hover:text-white">
