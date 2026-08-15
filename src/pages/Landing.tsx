@@ -322,15 +322,12 @@ export function Landing() {
             <Link to="/login" className="text-sm font-semibold text-ink-900 hover:text-kelder-600">
               Iniciar sesión
             </Link>
-            <Link to="/login" className="lift inline-flex min-h-[44px] items-center rounded-full bg-kelder-600 px-5 text-sm font-semibold text-white hover:bg-kelder-700">
-              Crear cuenta
-            </Link>
           </nav>
-          <div className="flex items-center gap-2 md:hidden">
-            <Link to="/login" className="inline-flex min-h-[42px] items-center rounded-full bg-kelder-600 px-4 text-sm font-semibold text-white">
-              Crear cuenta
+          <div className="flex items-center gap-3 md:hidden">
+            <Link to="/login" className="text-sm font-semibold text-ink-900">
+              Iniciar sesión
             </Link>
-            <button onClick={() => setMenu((m) => !m)} aria-label="Menú" aria-expanded={menu} className="flex h-10 w-10 items-center justify-center rounded-full text-ink-700 hover:bg-ink-50">
+            <button onClick={() => setMenu((m) => !m)} aria-label="Menú" aria-expanded={menu} className="-mr-2 flex h-10 w-10 items-center justify-center rounded-full text-ink-700 hover:bg-ink-50">
               {menu ? <X size={22} /> : <Menu size={22} />}
             </button>
           </div>
@@ -338,14 +335,11 @@ export function Landing() {
         {menu && (
           <div className="border-t border-ink-100 bg-white md:hidden">
             <Container className="flex flex-col py-2">
-              {navLinks.map((l) => (
-                <a key={l.href} href={l.href} onClick={() => setMenu(false)} className="min-h-[48px] border-b border-ink-50 py-3 text-[15px] font-medium text-ink-700">
+              {navLinks.map((l, i) => (
+                <a key={l.href} href={l.href} onClick={() => setMenu(false)} className={`min-h-[48px] py-3 text-[15px] font-medium text-ink-700 ${i < navLinks.length - 1 ? "border-b border-ink-50" : ""}`}>
                   {l.label}
                 </a>
               ))}
-              <Link to="/login" onClick={() => setMenu(false)} className="min-h-[48px] py-3 text-[15px] font-semibold text-ink-900">
-                Iniciar sesión
-              </Link>
             </Container>
           </div>
         )}
