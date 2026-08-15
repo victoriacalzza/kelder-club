@@ -515,25 +515,26 @@ export function Landing() {
               </p>
             </Reveal>
 
-            {/* Mobile: carrusel horizontal · Desktop: 3 columnas */}
-            <div className="-mx-5 mt-10 flex snap-x snap-mandatory gap-5 overflow-x-auto px-5 pb-2 [scrollbar-width:none] sm:-mx-8 sm:px-8 md:mx-0 md:grid md:grid-cols-3 md:gap-6 md:overflow-visible md:px-0 md:pb-0 lg:mt-12 [&::-webkit-scrollbar]:hidden">
+            {/* Mobile: cards horizontales compactas (miniatura + info, sin hueco) · Desktop (md+): 3 columnas verticales */}
+            <div className="mt-6 grid grid-cols-1 gap-3 md:mt-12 md:grid-cols-3 md:gap-6">
               {[
-                { img: prodNb530, marca: "New Balance", modelo: "530", precio: "$2,499", estado: "Tu talla está aquí", detalle: "Calzzapato Galerías", tono: "aqui" as const, cta: "Cómo llegar", to: "/tienda/t1" },
-                { img: prodAdidas, marca: "Adidas", modelo: "Ultraboost Light", precio: "$3,499", estado: "Tu talla está en otra tienda", detalle: "Forum · 2.4 km", tono: "cerca" as const, cta: "Ver tienda", to: "/tienda/t2" },
-                { img: prodOn, marca: "On", modelo: "Cloud 5", precio: "$2,449", estado: "Disponible por solicitud", detalle: "Consultar disponibilidad", tono: "solicitud" as const, cta: "Consultar disponibilidad", to: "/buscar" },
+                { img: prodNb530, marca: "New Balance", modelo: "530", precio: "$2,499", talla: "24 MX", estado: "Tu talla está aquí", detalle: "Calzzapato Galerías", tono: "aqui" as const, cta: "Cómo llegar", to: "/tienda/t1" },
+                { img: prodAdidas, marca: "Adidas", modelo: "Ultraboost Light", precio: "$3,499", talla: "24 MX", estado: "Tu talla está en otra tienda", detalle: "Forum · 2.4 km", tono: "cerca" as const, cta: "Ver tienda", to: "/tienda/t2" },
+                { img: prodOn, marca: "On", modelo: "Cloud 5", precio: "$2,449", talla: "24 MX", estado: "Disponible por solicitud", detalle: "Consultar disponibilidad", tono: "solicitud" as const, cta: "Consultar disponibilidad", to: "/buscar" },
               ].map((p, i) => (
-                <Reveal key={p.modelo} delay={i * 90} className="min-w-[80%] shrink-0 snap-center sm:min-w-[52%] md:min-w-0">
-                  <div className="flex h-full flex-col overflow-hidden rounded-3xl border border-ink-100 bg-white">
-                    <div className="flex h-44 items-center justify-center bg-gradient-to-br from-cream to-white p-6 sm:h-52">
-                      <img src={p.img} alt={`${p.marca} ${p.modelo}`} className="h-full w-full object-contain" />
+                <Reveal key={p.modelo} delay={i * 80}>
+                  <div className="flex flex-row overflow-hidden rounded-2xl border border-ink-100 bg-white md:h-full md:flex-col md:rounded-3xl">
+                    <div className="flex w-28 shrink-0 items-center justify-center bg-gradient-to-br from-cream to-white p-3 md:h-52 md:w-full md:p-6">
+                      <img src={p.img} alt={`${p.marca} ${p.modelo}`} className="h-24 w-full object-contain md:h-full" />
                     </div>
-                    <div className="flex flex-1 flex-col p-6">
-                      <p className="text-xs text-ink-400">{p.marca}</p>
+                    <div className="flex flex-1 flex-col justify-center p-4 md:justify-start md:p-6">
+                      <p className="text-[11px] text-ink-400 md:text-xs">{p.marca}</p>
                       <div className="flex items-baseline justify-between gap-3">
-                        <p className="text-lg font-semibold tracking-tight text-ink-900">{p.modelo}</p>
+                        <p className="text-base font-semibold tracking-tight text-ink-900 md:text-lg">{p.modelo}</p>
                         <p className="text-base font-semibold text-ink-900">{p.precio}</p>
                       </div>
-                      <div className="mt-4 flex items-start gap-2">
+                      <p className="mt-1 text-[13px] text-ink-500">Talla {p.talla}</p>
+                      <div className="mt-2 flex items-start gap-1.5 md:mt-4 md:gap-2">
                         <span className="mt-0.5 shrink-0" aria-hidden="true">
                           {p.tono === "aqui" ? (
                             <Check size={16} className="text-success-700" />
@@ -544,11 +545,11 @@ export function Landing() {
                           )}
                         </span>
                         <div className="min-w-0">
-                          <p className={`text-sm font-semibold ${p.tono === "aqui" ? "text-success-700" : "text-ink-900"}`}>{p.estado}</p>
+                          <p className={`text-[13px] font-semibold md:text-sm ${p.tono === "aqui" ? "text-success-700" : "text-ink-900"}`}>{p.estado}</p>
                           <p className="text-xs text-ink-500">{p.detalle}</p>
                         </div>
                       </div>
-                      <Link to={p.to} className="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-kelder-600">
+                      <Link to={p.to} className="mt-3 inline-flex items-center gap-1.5 text-[13px] font-semibold text-kelder-600 md:mt-5 md:text-sm">
                         {p.cta}
                         <ArrowRight size={16} aria-hidden="true" />
                       </Link>
@@ -569,14 +570,14 @@ export function Landing() {
                 Mucho más que puntos.
               </h2>
             </Reveal>
-            <div className="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-3 lg:mt-12">
-              {/* featured: tus tallas disponibles cerca (producto + talla + tienda) */}
+            <div className="mt-6 grid grid-cols-1 gap-3 sm:mt-10 sm:grid-cols-3 sm:gap-5 lg:mt-12">
+              {/* featured: tus tallas disponibles cerca — imagen pequeña de apoyo en móvil, protagonista en desktop */}
               <Reveal className="sm:col-span-2">
-                <div className="flex h-full flex-col justify-between gap-6 overflow-hidden rounded-3xl border border-ink-100 bg-white p-7 sm:flex-row sm:items-center">
-                  <div>
+                <div className="flex h-full flex-row items-center gap-4 overflow-hidden rounded-3xl border border-ink-100 bg-white p-5 sm:gap-6 sm:p-7">
+                  <div className="min-w-0 flex-1">
                     <Eyebrow>Tus tallas</Eyebrow>
-                    <h3 style={h3} className="mt-3 text-ink-900">Tus tallas, disponibles cerca de ti.</h3>
-                    <div className="mt-5 flex flex-wrap gap-2">
+                    <h3 style={h3} className="mt-2 text-ink-900 sm:mt-3">Tus tallas, disponibles cerca de ti.</h3>
+                    <div className="mt-3 flex flex-wrap gap-2 sm:mt-5">
                       <span className="inline-flex items-center gap-2 rounded-full bg-ink-50 px-3 py-1.5 text-sm">
                         <span className="text-[11px] font-medium text-ink-500">Calzado</span>
                         <span className="font-semibold text-ink-900">24 MX</span>
@@ -586,55 +587,59 @@ export function Landing() {
                         <span className="font-semibold text-ink-900">M</span>
                       </span>
                     </div>
-                    <p className="mt-4 max-w-sm text-sm text-ink-500">Encuentra productos disponibles en tu talla y descubre en qué tienda están.</p>
+                    <p className="mt-3 max-w-sm text-sm text-ink-500 sm:mt-4">Encuentra productos disponibles en tu talla y descubre en qué tienda están.</p>
                   </div>
-                  <div className="flex shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-cream to-white p-4 sm:w-56">
-                    <img src={prodNb530} alt="New Balance 530" className="h-40 w-full object-contain" />
+                  <div className="flex w-20 shrink-0 items-center justify-center sm:w-56 sm:rounded-2xl sm:bg-gradient-to-br sm:from-cream sm:to-white sm:p-4">
+                    <img src={prodNb530} alt="New Balance 530" className="h-20 w-full object-contain sm:h-40" />
                   </div>
                 </div>
               </Reveal>
 
               {/* mi saldo (dark) — $ principal, puntos secundario */}
               <Reveal delay={80}>
-                <div className="flex h-full flex-col justify-between rounded-3xl bg-ink-950 p-7 text-white">
+                <div className="flex h-full flex-col rounded-3xl bg-ink-950 p-5 text-white sm:justify-between sm:p-7">
                   <Eyebrow className="text-kelder-400">Mis beneficios</Eyebrow>
-                  <div className="mt-6">
-                    <p style={{ fontSize: "clamp(3rem,6vw,4.25rem)", lineHeight: 1, fontWeight: 600, letterSpacing: "-0.02em" }}>$245</p>
+                  <div className="mt-3 sm:mt-6">
+                    <p style={{ fontSize: "clamp(2.75rem,6vw,4.25rem)", lineHeight: 1, fontWeight: 600, letterSpacing: "-0.02em" }}>$245</p>
                     <p className="mt-1 text-base text-white/70">disponibles</p>
-                    <p className="mt-3 text-sm text-white/45">245 puntos Kelder Club+</p>
+                    <p className="mt-2 text-sm text-white/45 sm:mt-3">245 puntos Kelder Club+</p>
                   </div>
                 </div>
               </Reveal>
 
-              {/* crédito y vales (breve — hay sección dedicada) */}
+              {/* crédito y vales (breve — hay sección dedicada) · móvil: horizontal compacto */}
               <Reveal>
-                <div className="flex h-full flex-col rounded-3xl border border-ink-100 bg-white p-7">
-                  <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-kelder-50 text-kelder-600">
+                <div className="flex h-full flex-row items-center gap-4 rounded-3xl border border-ink-100 bg-white p-5 sm:flex-col sm:items-start sm:p-7">
+                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-kelder-50 text-kelder-600">
                     <Ticket size={22} aria-hidden="true" />
                   </span>
-                  <h3 className="mt-5 text-xl font-semibold text-ink-900">Crédito y Vales</h3>
-                  <p className="mt-1.5 text-sm text-ink-500">Consulta tu Crédito Kelder y tus CrediVales.</p>
+                  <div className="min-w-0">
+                    <h3 className="text-lg font-semibold text-ink-900 sm:mt-5 sm:text-xl">Crédito y Vales</h3>
+                    <p className="mt-0.5 text-sm text-ink-500 sm:mt-1.5">Consulta tu Crédito Kelder y tus CrediVales.</p>
+                  </div>
                 </div>
               </Reveal>
 
-              {/* mis compras */}
+              {/* mis compras · móvil: horizontal compacto */}
               <Reveal delay={80}>
-                <div className="flex h-full flex-col rounded-3xl border border-ink-100 bg-white p-7">
-                  <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-kelder-50 text-kelder-600">
+                <div className="flex h-full flex-row items-center gap-4 rounded-3xl border border-ink-100 bg-white p-5 sm:flex-col sm:items-start sm:p-7">
+                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-kelder-50 text-kelder-600">
                     <ShoppingBag size={22} aria-hidden="true" />
                   </span>
-                  <h3 className="mt-5 text-xl font-semibold text-ink-900">Mis compras</h3>
-                  <p className="mt-1.5 text-sm text-ink-500">Consulta tus compras y tickets.</p>
+                  <div className="min-w-0">
+                    <h3 className="text-lg font-semibold text-ink-900 sm:mt-5 sm:text-xl">Mis compras</h3>
+                    <p className="mt-0.5 text-sm text-ink-500 sm:mt-1.5">Consulta tus compras y tickets.</p>
+                  </div>
                 </div>
               </Reveal>
 
-              {/* mi tienda (foto) */}
+              {/* mi tienda (foto) · móvil: más baja */}
               <Reveal delay={160}>
-                <div className="relative flex h-full min-h-[200px] flex-col justify-end overflow-hidden rounded-3xl">
+                <div className="relative flex h-full min-h-[128px] flex-col justify-end overflow-hidden rounded-3xl sm:min-h-[200px]">
                   <img src={tiendaFoto} alt="" className="absolute inset-0 h-full w-full object-cover" />
                   <div className="absolute inset-0 bg-gradient-to-t from-ink-950/85 via-ink-950/25 to-transparent" />
-                  <div className="relative p-7 text-white">
-                    <h3 className="text-xl font-semibold">Mi tienda</h3>
+                  <div className="relative p-5 text-white sm:p-7">
+                    <h3 className="text-lg font-semibold sm:text-xl">Mi tienda</h3>
                     <p className="mt-1 text-sm text-white/80">Consulta información de tu tienda seleccionada.</p>
                   </div>
                 </div>
