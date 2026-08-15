@@ -365,7 +365,7 @@ export function Landing() {
         {/* ═══════════ 1 · HERO ═══════════ */}
         <section className="relative overflow-hidden bg-white">
           <Container>
-            <div className="grid items-center gap-8 pb-12 pt-9 sm:pb-16 sm:pt-12 md:min-h-[82vh] md:grid-cols-[1.05fr_1fr] md:gap-6 md:py-8">
+            <div className="grid items-center gap-8 pb-10 pt-6 sm:pb-16 sm:pt-12 md:min-h-[82vh] md:grid-cols-[1.05fr_1fr] md:gap-6 md:py-8">
               {/* left */}
               <Reveal className="relative z-10 max-w-xl">
                 <Eyebrow>Kelder Club+</Eyebrow>
@@ -384,32 +384,17 @@ export function Landing() {
                   </Link>
                 </div>
 
-                {/* Móvil: previews compactos tipo-app (apoyo visual del hero, no otro bloque enorme) */}
-                <div className="mt-7 md:hidden">
-                  <div className="rounded-2xl bg-ink-950 p-4 text-white shadow-card">
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-white/50">Tu saldo disponible</p>
-                    <div className="mt-1 flex items-baseline gap-2">
-                      <p className="text-[28px] font-semibold leading-none tracking-tight">$245</p>
-                      <p className="text-[11px] text-white/55">245 puntos Kelder Club+</p>
-                    </div>
-                    <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-white/15">
-                      <div className="h-full w-2/3 rounded-full bg-white" />
-                    </div>
-                  </div>
-                  <div className="mt-3 grid grid-cols-2 gap-3">
-                    <div className="flex items-center gap-2 rounded-2xl border border-ink-100 bg-white px-3 py-2.5">
-                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-success-100 text-success-700">
-                        <Check size={15} aria-hidden="true" />
-                      </span>
-                      <span className="text-[13px] font-semibold leading-tight text-ink-900">Tu talla está aquí</span>
-                    </div>
-                    <div className="flex items-center gap-2 rounded-2xl border border-ink-100 bg-white px-3 py-2.5">
-                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-kelder-50 text-kelder-600">
-                        <Ticket size={15} aria-hidden="true" />
-                      </span>
-                      <span className="text-[13px] font-semibold leading-tight text-ink-900">Crédito y Vales</span>
-                    </div>
-                  </div>
+                {/* Móvil: recurso editorial ligero — producto recortado entrando desde el lateral (no dashboard) */}
+                <div className="relative mt-7 h-36 overflow-hidden rounded-2xl bg-gradient-to-br from-kelder-50 via-cream to-white ring-1 ring-ink-100 md:hidden">
+                  <img
+                    src={prodNb530}
+                    alt=""
+                    aria-hidden="true"
+                    className="pointer-events-none absolute -right-5 top-1/2 w-52 -translate-y-1/2 -rotate-[14deg] drop-shadow-xl"
+                  />
+                  <span className="absolute bottom-3 left-4 text-[13px] font-medium tracking-tight text-ink-700">
+                    Tu talla. Tu tienda. Tus beneficios.
+                  </span>
                 </div>
               </Reveal>
 
