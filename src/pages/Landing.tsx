@@ -365,7 +365,7 @@ export function Landing() {
         {/* ═══════════ 1 · HERO ═══════════ */}
         <section className="relative overflow-hidden bg-white">
           <Container>
-            <div className="grid items-center gap-8 pb-10 pt-6 sm:pb-16 sm:pt-12 md:min-h-[82vh] md:grid-cols-[1.05fr_1fr] md:gap-6 md:py-8">
+            <div className="grid items-center gap-8 pb-8 pt-6 sm:pb-16 sm:pt-12 md:min-h-[82vh] md:grid-cols-[1.05fr_1fr] md:gap-6 md:py-8">
               {/* left */}
               <Reveal className="relative z-10 max-w-xl">
                 <Eyebrow>Kelder Club+</Eyebrow>
@@ -382,19 +382,6 @@ export function Landing() {
                   <Link to="/tiendas" className="inline-flex min-h-[54px] w-full items-center justify-center rounded-full border border-ink-200 px-8 text-base font-semibold text-ink-900 hover:bg-ink-50 sm:w-auto">
                     Encontrar una tienda
                   </Link>
-                </div>
-
-                {/* Móvil: recurso editorial ligero — producto recortado entrando desde el lateral (no dashboard) */}
-                <div className="relative mt-7 h-36 overflow-hidden rounded-2xl bg-gradient-to-br from-kelder-50 via-cream to-white ring-1 ring-ink-100 md:hidden">
-                  <img
-                    src={prodNb530}
-                    alt=""
-                    aria-hidden="true"
-                    className="pointer-events-none absolute -right-5 top-1/2 w-52 -translate-y-1/2 -rotate-[14deg] drop-shadow-xl"
-                  />
-                  <span className="absolute bottom-3 left-4 text-[13px] font-medium tracking-tight text-ink-700">
-                    Tu talla. Tu tienda. Tus beneficios.
-                  </span>
                 </div>
               </Reveal>
 
