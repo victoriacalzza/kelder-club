@@ -1,7 +1,8 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AppShell } from "@/components/layout/AppShell";
 import { NativeBackButton } from "@/components/system/NativeBackButton";
 import { ClubProvider } from "@/lib/ClubContext";
+import { Landing } from "@/pages/Landing";
 import { Home } from "@/pages/Home";
 import { Vales } from "@/pages/Vales";
 import { Extravales } from "@/pages/Extravales";
@@ -31,9 +32,19 @@ export default function App() {
     <BrowserRouter>
       <ClubProvider>
         <NativeBackButton />
-        <AppShell>
-          <Routes>
-            <Route path="/" element={<Home />} />
+        <Routes>
+          {/* Public marketing entry — lives OUTSIDE the app shell (its own header/footer) */}
+          <Route path="/landing" element={<Landing />} />
+
+          {/* The loyalty app (bottom nav / top nav shell) */}
+          <Route
+            path="*"
+            element={
+              <AppShell>
+                <Routes>
+                  <Route path="/" element={<Home />} />
+                  {/* Temporary: real auth/registro comes later; for now entering goes to the app */}
+                  <Route path="/login" element={<Navigate to="/" replace />} />
             <Route path="/vales" element={<Vales />} />
             <Route path="/extravales" element={<Extravales />} />
             <Route path="/vales/:id" element={<ValeDetail />} />
@@ -55,9 +66,12 @@ export default function App() {
             <Route path="/promocion/:id" element={<PromocionDetalle />} />
             <Route path="/favoritos" element={<Favoritos />} />
             <Route path="/mi-visita" element={<MiVisita />} />
-            <Route path="/notificaciones" element={<Notificaciones />} />
-          </Routes>
-        </AppShell>
+                  <Route path="/notificaciones" element={<Notificaciones />} />
+                </Routes>
+              </AppShell>
+            }
+          />
+        </Routes>
       </ClubProvider>
     </BrowserRouter>
   );
