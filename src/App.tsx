@@ -27,6 +27,7 @@ import { Favoritos } from "@/pages/Favoritos";
 import { MiVisita } from "@/pages/MiVisita";
 import { Notificaciones } from "@/pages/Notificaciones";
 
+// Redeploy trigger (no-op) — force Vercel to build latest main.
 export default function App() {
   return (
     <BrowserRouter>
