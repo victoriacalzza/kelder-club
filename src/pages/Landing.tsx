@@ -345,13 +345,10 @@ export function Landing() {
                 <h1 style={h1} className="mt-5 text-ink-900 text-balance">
                   Comprar tiene más beneficios. <span className="text-kelder-600">Muchos más.</span>
                 </h1>
-                <p style={lead} className="mt-6 max-w-xl text-ink-600">
+                <p style={lead} className="mt-7 max-w-xl text-ink-600">
                   Descubre productos, encuentra tu talla, acumula puntos y lleva tus compras, crédito y vales contigo.
                 </p>
-                <div className="mt-7 inline-flex items-center gap-2 rounded-full bg-cream px-4 py-2 text-sm font-semibold text-ink-800 ring-1 ring-ink-100">
-                  🎁 $50 en puntos de bienvenida
-                </div>
-                <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+                <div className="mt-10 flex flex-col gap-3 sm:flex-row">
                   <Link to="/login" className="lift inline-flex min-h-[54px] items-center justify-center rounded-full bg-kelder-600 px-8 text-base font-semibold text-white hover:bg-kelder-700">
                     Crear mi cuenta
                   </Link>
