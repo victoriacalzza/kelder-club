@@ -305,13 +305,29 @@ export function Landing() {
   const [menu, setMenu] = useState(false);
   const isSm = useMinWidth(640); // Tailwind `sm`
   const heroPhoneW = isSm ? 252 : 208; // teléfono del hero: proporcional en móvil
+
+  // Header dinámico: sólido y alto arriba; glass translúcido y más bajo al hacer scroll.
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   return (
     <div className="min-h-screen w-full overflow-x-clip bg-white text-ink-900" style={{ scrollBehavior: "smooth" }}>
-      {/* ───────── Header ───────── */}
-      <header className="sticky top-0 z-50 border-b border-ink-100 bg-white/85 backdrop-blur">
-        <Container className="flex h-[70px] items-center justify-between">
+      {/* ───────── Header (dinámico al scroll) ───────── */}
+      <header
+        className={`sticky top-0 z-50 transition-all duration-300 ease-out ${
+          scrolled
+            ? "border-b border-ink-100/70 bg-white/80 shadow-[0_1px_2px_rgba(0,0,0,0.05)] backdrop-blur-md supports-[backdrop-filter]:bg-white/80"
+            : "border-b border-transparent bg-white"
+        }`}
+      >
+        <Container className={`flex items-center justify-between transition-all duration-300 ease-out ${scrolled ? "h-[56px]" : "h-[70px]"}`}>
           <a href="#top" className="flex shrink-0 items-center" aria-label="Kelder Club+">
-            <img src={logoKelderClub} alt="Kelder Club+" className="h-6 w-auto sm:h-7" />
+            <img src={logoKelderClub} alt="Kelder Club+" className={`w-auto transition-all duration-300 ease-out ${scrolled ? "h-[22px] sm:h-6" : "h-6 sm:h-7"}`} />
           </a>
           <nav className="hidden items-center gap-8 md:flex">
             {navLinks.map((l) => (
@@ -324,7 +340,7 @@ export function Landing() {
             </Link>
           </nav>
           <div className="flex items-center gap-3 md:hidden">
-            <Link to="/login" className="text-sm font-semibold text-ink-900">
+            <Link to="/login" className="text-[15px] font-semibold text-ink-900">
               Iniciar sesión
             </Link>
             <button onClick={() => setMenu((m) => !m)} aria-label="Menú" aria-expanded={menu} className="-mr-2 flex h-10 w-10 items-center justify-center rounded-full text-ink-700 hover:bg-ink-50">
@@ -367,10 +383,38 @@ export function Landing() {
                     Encontrar una tienda
                   </Link>
                 </div>
+
+                {/* Móvil: previews compactos tipo-app (apoyo visual del hero, no otro bloque enorme) */}
+                <div className="mt-7 md:hidden">
+                  <div className="rounded-2xl bg-ink-950 p-4 text-white shadow-card">
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-white/50">Tu saldo disponible</p>
+                    <div className="mt-1 flex items-baseline gap-2">
+                      <p className="text-[28px] font-semibold leading-none tracking-tight">$245</p>
+                      <p className="text-[11px] text-white/55">245 puntos Kelder Club+</p>
+                    </div>
+                    <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-white/15">
+                      <div className="h-full w-2/3 rounded-full bg-white" />
+                    </div>
+                  </div>
+                  <div className="mt-3 grid grid-cols-2 gap-3">
+                    <div className="flex items-center gap-2 rounded-2xl border border-ink-100 bg-white px-3 py-2.5">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-success-100 text-success-700">
+                        <Check size={15} aria-hidden="true" />
+                      </span>
+                      <span className="text-[13px] font-semibold leading-tight text-ink-900">Tu talla está aquí</span>
+                    </div>
+                    <div className="flex items-center gap-2 rounded-2xl border border-ink-100 bg-white px-3 py-2.5">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-kelder-50 text-kelder-600">
+                        <Ticket size={15} aria-hidden="true" />
+                      </span>
+                      <span className="text-[13px] font-semibold leading-tight text-ink-900">Crédito y Vales</span>
+                    </div>
+                  </div>
+                </div>
               </Reveal>
 
-              {/* right — phone integrated in a warm panel with floating chips + product */}
-              <Reveal delay={140} className="relative">
+              {/* right — phone integrated in a warm panel with floating chips + product (solo desktop/tablet) */}
+              <Reveal delay={140} className="relative hidden md:block">
                 <div className="relative mx-auto aspect-[4/5] w-full max-w-[520px] overflow-hidden rounded-[2rem] bg-gradient-to-br from-kelder-50 via-cream to-white ring-1 ring-ink-100 sm:rounded-[2.5rem]">
                   {/* product accent */}
                   <img src={prodNb530} alt="" className="pointer-events-none absolute -left-8 bottom-6 w-44 -rotate-12 opacity-95 drop-shadow-xl sm:-left-10 sm:w-64" />
