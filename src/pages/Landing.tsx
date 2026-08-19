@@ -265,7 +265,8 @@ function Chip({ children, className = "", style }: { children: ReactNode; classN
 const faqs = [
   { q: "¿Kelder Club+ tiene costo?", a: "No. Registrarte es completamente gratuito." },
   { q: "¿Cuánto vale un punto Kelder Club+?", a: "Cada punto equivale a $1 peso en beneficios. Por eso mostramos primero tu saldo disponible en pesos: así sabes fácilmente cuánto puedes utilizar." },
-  { q: "¿Cómo acumulo puntos?", a: "Acumulas puntos con cada compra participante, sujeto a las políticas del programa." },
+  { q: "¿Cómo acumulo puntos?", a: "Acumulas puntos con cada compra participante, tanto en tiendas físicas como en tiendas en línea participantes, sujeto a las políticas del programa." },
+  { q: "¿Puedo utilizar mis puntos en compras en línea?", a: "Sí. Para utilizarlos debes generar previamente un cupón desde Kelder Club+, seleccionar la tienda en línea participante donde realizarás tu compra y utilizar el código generado durante el checkout." },
   { q: "¿Mis puntos tienen vigencia?", a: "La vigencia se rige por los términos y condiciones vigentes del programa." },
   { q: "¿Dónde puedo utilizar mis beneficios?", a: "En las unidades de negocio y franquicias participantes (no aplica en Choix). Muestra Mi K en caja para identificarte y utilizar tus beneficios." },
   { q: "¿Qué son los CrediVales?", a: "Son vales digitales que puedes consultar desde Kelder Club+. Son un producto independiente del Crédito Kelder." },
@@ -300,6 +301,120 @@ const marcas = [
   { src: calzzasport, name: "CalzzaSport" },
   { src: calzakids, name: "CalzaKids" },
 ];
+
+/* ═══════════════════════ Sección "También en línea" (ecommerce) ═══════════════════════ */
+const redeemSteps = [
+  { n: "01", t: "Genera tu cupón", d: "Inicia sesión en Kelder Club+ y selecciona “Canjear en línea”." },
+  { n: "02", t: "Elige dónde y cuánto", d: "Selecciona la tienda en línea, indica los puntos que deseas canjear e ingresa el correo de tu cuenta en esa tienda. Después confirma la información." },
+  { n: "03", t: "Copia tu código", d: "Kelder Club+ generará tu código de cupón. Cópialo para utilizarlo en tu compra." },
+  { n: "04", t: "Úsalo al comprar", d: "Ve a la tienda en línea, realiza tu compra y pega el código durante el checkout para aplicar tus puntos." },
+];
+
+/* flecha del flujo: apunta hacia abajo en móvil, hacia la derecha en desktop */
+function FlowArrow() {
+  return (
+    <div className="flex shrink-0 items-center justify-center">
+      <ArrowRight size={18} className="rotate-90 text-ink-300 sm:rotate-0" aria-hidden="true" />
+    </div>
+  );
+}
+
+function SeccionEnLinea() {
+  const [open, setOpen] = useState(false);
+  return (
+    <section id="en-linea" className="scroll-mt-24 bg-cream" style={sectionPad}>
+      <Container>
+        <Reveal className="max-w-2xl">
+          <Eyebrow>También en línea</Eyebrow>
+          <h2 style={h2} className="mt-4 text-ink-900 text-balance">
+            Tus puntos también van contigo en línea.
+          </h2>
+          <p style={lead} className="mt-5 text-ink-600 sm:mt-6">
+            Compra en nuestras tiendas en línea participantes, acumula puntos y utilízalos en futuras compras.
+          </p>
+        </Reveal>
+
+        {/* dos beneficios · móvil: horizontal compacto */}
+        <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:mt-10">
+          {[
+            { icon: <ShoppingBag size={22} aria-hidden="true" />, t: "Compra y acumula", d: "Tus compras en línea también generan puntos Kelder Club+." },
+            { icon: <Ticket size={22} aria-hidden="true" />, t: "Canjea en línea", d: "Genera un cupón con tus puntos y utilízalo durante el checkout de la tienda participante." },
+          ].map((b, i) => (
+            <Reveal key={b.t} delay={i * 80}>
+              <div className="flex h-full flex-row items-center gap-4 rounded-3xl border border-ink-100 bg-white p-5 sm:flex-col sm:items-start sm:p-7">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-kelder-50 text-kelder-600">{b.icon}</span>
+                <div className="min-w-0">
+                  <h3 className="text-lg font-semibold text-ink-900 sm:mt-5 sm:text-xl">{b.t}</h3>
+                  <p className="mt-0.5 text-sm text-ink-500 sm:mt-1.5">{b.d}</p>
+                </div>
+              </div>
+            </Reveal>
+          ))}
+        </div>
+
+        {/* CTA secundario + desplegable "Cómo canjear en línea" */}
+        <div className="mt-7 sm:mt-8">
+          <button
+            onClick={() => setOpen((o) => !o)}
+            aria-expanded={open}
+            aria-controls="canje-online"
+            className="lift inline-flex min-h-[52px] items-center gap-2 rounded-full bg-ink-950 px-7 text-sm font-semibold text-white hover:bg-ink-900"
+          >
+            Cómo canjear en línea
+            <ChevronDown size={18} className={`transition-transform ${open ? "rotate-180" : ""}`} aria-hidden="true" />
+          </button>
+
+          <div id="canje-online" className={`grid transition-[grid-template-rows] duration-300 ease-out ${open ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}>
+            <div className="overflow-hidden">
+              <div className="mt-5 rounded-3xl border border-ink-100 bg-white p-5 sm:mt-6 sm:p-8">
+                {/* flujo visual: Kelder Club+ → cupón → checkout (vertical en móvil, horizontal en desktop) */}
+                <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:gap-4">
+                  <div className="flex-1 rounded-2xl bg-ink-950 p-4 text-white">
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-kelder-400">Kelder Club+</p>
+                    <p className="mt-1 text-2xl font-semibold leading-none">
+                      250 <span className="text-sm font-medium text-white/60">puntos</span>
+                    </p>
+                  </div>
+                  <FlowArrow />
+                  <div className="flex-1 rounded-2xl border border-kelder-200 bg-kelder-50/60 p-4">
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-kelder-600">Cupón generado</p>
+                    <p className="mt-1 font-mono text-lg font-semibold tracking-tight text-ink-900">KELDER-XXXX</p>
+                  </div>
+                  <FlowArrow />
+                  <div className="flex-1 rounded-2xl border border-ink-100 bg-white p-4">
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-ink-400">Checkout</p>
+                    <p className="mt-1 text-[15px] font-semibold text-ink-900">Aplica el cupón en la tienda en línea</p>
+                  </div>
+                </div>
+
+                {/* 4 pasos · vertical en móvil, 4 columnas en desktop */}
+                <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4 lg:gap-8">
+                  {redeemSteps.map((s) => (
+                    <div key={s.n}>
+                      <span className="text-4xl font-semibold tracking-tight text-kelder-600 sm:text-5xl">{s.n}</span>
+                      <h4 className="mt-3 text-base font-semibold text-ink-900">{s.t}</h4>
+                      <p className="mt-1.5 text-[14px] leading-relaxed text-ink-500">{s.d}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* tiendas en línea participantes */}
+        <div className="mt-8 sm:mt-10">
+          <p className="text-sm text-ink-500">Disponible en las tiendas en línea participantes.</p>
+          <div className="mt-3 flex flex-wrap items-center gap-x-8 gap-y-4">
+            {marcas.map((m) => (
+              <img key={m.name} src={m.src} alt={m.name} className="h-6 w-auto max-w-[120px] object-contain opacity-45" style={{ filter: "brightness(0)" }} />
+            ))}
+          </div>
+        </div>
+      </Container>
+    </section>
+  );
+}
 
 export function Landing() {
   const [menu, setMenu] = useState(false);
@@ -679,7 +794,7 @@ export function Landing() {
                 {[
                   { n: "01", t: "Crea tu cuenta", d: "Registrarte es gratuito y toma pocos minutos.", s: undefined as string | undefined },
                   { n: "02", t: "Muestra tu K al comprar", d: "Identifícate con Mi K al realizar tus compras.", s: "También puedes identificarte con tu número celular." },
-                  { n: "03", t: "Acumula y disfruta", d: "Acumula puntos con tus compras y utilízalos como beneficios en futuras compras.", s: undefined },
+                  { n: "03", t: "Acumula y disfruta", d: "Tus compras en tiendas físicas y en línea participantes generan puntos que podrás utilizar en futuras compras.", s: undefined },
                 ].map((s, i) => (
                   <Reveal key={s.n} delay={i * 120} className="relative">
                     <span className="relative inline-block bg-white pr-4 text-6xl font-semibold tracking-tight text-kelder-600 sm:text-7xl md:pr-6">{s.n}</span>
@@ -692,6 +807,9 @@ export function Landing() {
             </div>
           </Container>
         </section>
+
+        {/* ═══════════ 5b · TAMBIÉN EN LÍNEA (ecommerce: acumula + canjea con cupón) ═══════════ */}
+        <SeccionEnLinea />
 
         {/* ═══════════ 6 · LA APP (dark, 3 teléfonos) ═══════════ */}
         <section className="overflow-hidden bg-ink-950 text-white" style={sectionPad}>
