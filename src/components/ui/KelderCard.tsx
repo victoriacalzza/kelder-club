@@ -1,12 +1,13 @@
 import { QrCode, CreditCard, Store, ArrowRight } from "lucide-react";
 import { cuenta, formatMXN } from "@/lib/mock-data";
+import heroProducto from "@/assets/hero-producto.png";
 
 /**
  * The cashback hero — block 1 and the heaviest element of the Home, styled like a premium
  * wallet/rewards card (not a promo banner). It is the ONLY surface allowed a red tint, and even
  * here it is mostly black (Amex Black feel): a deep, desaturated red glow in the lower-left,
- * behind the amount. It carries NO product photography — cashback is category-agnostic and must
- * stay timeless; no decorative element fills the right side, the space stays intentionally clean.
+ * behind the amount. On WEB (desktop, lg+) the right half shows product photography (hero-producto);
+ * on the mobile app (below lg) that image is intentionally hidden so it never appears there.
  * The canvas for this component is at tempo/designs/design-system/primitives/index.canvas.tsx.
  * If you adjust this component in any way, ensure the canvas and its asset declaration stay consistent.
  */
@@ -31,6 +32,14 @@ export function KelderCard({ cashback, onShowQR, onUse, onStart, onComprar }: Ke
           "radial-gradient(90% 100% at 8% 92%, rgba(122,16,32,0.60) 0%, rgba(15,13,19,0) 55%), linear-gradient(160deg, #1a1720 0%, #100e15 100%)",
       }}
     >
+      {/* Producto (fotografía) — SOLO en web/desktop (lg+); oculto en la app móvil (below lg) */}
+      <img
+        src={heroProducto}
+        alt=""
+        aria-hidden="true"
+        className="pointer-events-none absolute right-4 top-1/2 hidden h-[80%] w-[45%] max-w-[520px] -translate-y-1/2 object-contain object-right lg:block"
+      />
+
       <div className="relative p-5 sm:p-6 lg:p-10">
         {tieneCashback ? (
           <>
