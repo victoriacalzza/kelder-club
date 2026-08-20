@@ -15,6 +15,7 @@ import {
   ShoppingBag,
   Ticket,
   Package,
+  Phone,
 } from "lucide-react";
 import logoKelderClub from "../assets/logos/kelder-club.png";
 import kelderK from "../assets/logos/kelder-k.png";
@@ -915,6 +916,23 @@ export function Landing() {
                 </Reveal>
               ))}
             </div>
+
+            {/* Contacto — bloque compacto, número clicable (tel:) en móvil */}
+            <Reveal>
+              <div className="mt-5 flex flex-col items-center gap-4 rounded-2xl border border-ink-100 bg-cream px-6 py-6 text-center sm:mt-6 sm:flex-row sm:justify-between sm:gap-6 sm:px-8 sm:text-left">
+                <div>
+                  <p className="text-base font-semibold text-ink-900 sm:text-[17px]">¿Aún tienes dudas?</p>
+                  <p className="mt-1 text-[15px] text-ink-600">Estamos para ayudarte. Comunícate con nosotros.</p>
+                </div>
+                <a
+                  href="tel:+528009272867"
+                  className="inline-flex min-h-[48px] shrink-0 items-center gap-2.5 rounded-full bg-white px-6 text-lg font-semibold tracking-tight text-ink-900 shadow-soft ring-1 ring-ink-100 hover:ring-kelder-200 sm:text-xl"
+                >
+                  <Phone size={19} className="text-kelder-600" aria-hidden="true" />
+                  800 927 28 67
+                </a>
+              </div>
+            </Reveal>
           </div>
         </section>
 
