@@ -6,7 +6,7 @@ import { cuenta, formatMXN } from "@/lib/mock-data";
  * wallet/rewards card (not a promo banner). It is the ONLY surface allowed a red tint, and even
  * here it is mostly black (Amex Black feel): a deep, desaturated red glow in the lower-left,
  * behind the amount. It carries NO product photography — cashback is category-agnostic and must
- * stay timeless; the only decoration is an extremely subtle abstract light bloom top-right.
+ * stay timeless; no decorative element fills the right side, the space stays intentionally clean.
  * The canvas for this component is at tempo/designs/design-system/primitives/index.canvas.tsx.
  * If you adjust this component in any way, ensure the canvas and its asset declaration stay consistent.
  */
@@ -31,14 +31,6 @@ export function KelderCard({ cashback, onShowQR, onUse, onStart, onComprar }: Ke
           "radial-gradient(90% 100% at 8% 92%, rgba(122,16,32,0.60) 0%, rgba(15,13,19,0) 55%), linear-gradient(160deg, #1a1720 0%, #100e15 100%)",
       }}
     >
-      {/* subtle abstract light bloom (top-right) — balances the space left by removing product
-          photography, without competing with the amount. Extremely low opacity, brand-neutral. */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute -right-10 -top-10 h-44 w-44 rounded-full"
-        style={{ background: "radial-gradient(circle, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0) 70%)" }}
-      />
-
       <div className="relative p-5 sm:p-6 lg:p-10">
         {tieneCashback ? (
           <>
