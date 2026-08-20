@@ -492,7 +492,7 @@ export function Landing() {
                   Descubre productos, encuentra tu talla, acumula puntos y lleva tus compras, crédito y vales contigo.
                 </p>
                 <div className="mt-8 flex flex-col gap-3 sm:mt-10 sm:flex-row">
-                  <Link to="/login" className="lift inline-flex min-h-[54px] w-full items-center justify-center rounded-full bg-kelder-600 px-8 text-base font-semibold text-white hover:bg-kelder-700 sm:w-auto">
+                  <Link to="/registro" className="lift inline-flex min-h-[54px] w-full items-center justify-center rounded-full bg-kelder-600 px-8 text-base font-semibold text-white hover:bg-kelder-700 sm:w-auto">
                     Crear mi cuenta
                   </Link>
                   <Link to="/tiendas" className="inline-flex min-h-[54px] w-full items-center justify-center rounded-full border border-ink-200 px-8 text-base font-semibold text-ink-900 hover:bg-ink-50 sm:w-auto">
@@ -947,7 +947,7 @@ export function Landing() {
                 Únete gratis a Kelder Club+ y lleva tus beneficios siempre contigo.
               </p>
               <div className="mt-8 flex flex-col items-center gap-4 sm:mt-10">
-                <Link to="/login" className="lift inline-flex min-h-[56px] w-full max-w-xs items-center justify-center rounded-full bg-white px-10 text-base font-semibold text-kelder-700 hover:bg-white/90 sm:w-auto">
+                <Link to="/registro" className="lift inline-flex min-h-[56px] w-full max-w-xs items-center justify-center rounded-full bg-white px-10 text-base font-semibold text-kelder-700 hover:bg-white/90 sm:w-auto">
                   Crear mi cuenta
                 </Link>
                 <Link to="/login" className="text-sm font-medium text-white/85 underline underline-offset-4 hover:text-white">

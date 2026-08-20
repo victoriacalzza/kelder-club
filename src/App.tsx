@@ -3,6 +3,9 @@ import { AppShell } from "@/components/layout/AppShell";
 import { NativeBackButton } from "@/components/system/NativeBackButton";
 import { ClubProvider } from "@/lib/ClubContext";
 import { Landing } from "@/pages/Landing";
+import { Login } from "@/pages/Login";
+import { Registro } from "@/pages/Registro";
+import { isLoggedIn } from "@/lib/auth";
 import { Home } from "@/pages/Home";
 import { Vales } from "@/pages/Vales";
 import { Extravales } from "@/pages/Extravales";
@@ -37,6 +40,11 @@ export default function App() {
           {/* Public marketing entry — lives OUTSIDE the app shell (its own header/footer) */}
           <Route path="/landing" element={<Landing />} />
 
+          {/* Acceso — fuera del AppShell (pantalla completa). Si ya hay sesión, Iniciar sesión
+              lleva directo al Home sin volver a pedir credenciales. */}
+          <Route path="/login" element={isLoggedIn() ? <Navigate to="/" replace /> : <Login />} />
+          <Route path="/registro" element={<Registro />} />
+
           {/* The loyalty app (bottom nav / top nav shell) */}
           <Route
             path="*"
@@ -44,8 +52,6 @@ export default function App() {
               <AppShell>
                 <Routes>
                   <Route path="/" element={<Home />} />
-                  {/* Temporary: real auth/registro comes later; for now entering goes to the app */}
-                  <Route path="/login" element={<Navigate to="/" replace />} />
             <Route path="/vales" element={<Vales />} />
             <Route path="/extravales" element={<Extravales />} />
             <Route path="/vales/:id" element={<ValeDetail />} />
