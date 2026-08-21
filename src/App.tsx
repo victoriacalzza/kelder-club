@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AppShell } from "@/components/layout/AppShell";
 import { NativeBackButton } from "@/components/system/NativeBackButton";
 import { ClubProvider } from "@/lib/ClubContext";
@@ -30,28 +30,29 @@ import { Favoritos } from "@/pages/Favoritos";
 import { MiVisita } from "@/pages/MiVisita";
 import { Notificaciones } from "@/pages/Notificaciones";
 
-// Redeploy trigger (no-op) — force Vercel to build latest main.
-export default function App() {
+/**
+ * Acceso — pantalla de Login (fuera del AppShell). Si ya hay sesión, entra directo al Home
+ * sin volver a pedir credenciales. La verificación corre al renderizar la ruta (reactiva a la
+ * navegación), no una sola vez al montar la app.
+ */
+function LoginRoute() {
+  return isLoggedIn() ? <Navigate to="/" replace /> : <Login />;
+}
+
+/**
+ * Acceso diferenciado en la raíz y en el resto de rutas de la app:
+ *  - Invitado en "/"  → landing informativa pública (kelderclub.com).
+ *  - Con sesión en "/" → Home autenticado dentro del AppShell.
+ * Todo lo demás (rutas de la app) vive dentro del mismo AppShell, así que navegar entre el
+ * Home y las otras pestañas NO remonta el shell. No cambia diseño; sólo la lógica de acceso.
+ */
+function AppOrLanding() {
+  const { pathname } = useLocation();
+  if (!isLoggedIn() && pathname === "/") return <Landing />;
   return (
-    <BrowserRouter>
-      <ClubProvider>
-        <NativeBackButton />
-        <Routes>
-          {/* Public marketing entry — lives OUTSIDE the app shell (its own header/footer) */}
-          <Route path="/landing" element={<Landing />} />
-
-          {/* Acceso — fuera del AppShell (pantalla completa). Si ya hay sesión, Iniciar sesión
-              lleva directo al Home sin volver a pedir credenciales. */}
-          <Route path="/login" element={isLoggedIn() ? <Navigate to="/" replace /> : <Login />} />
-          <Route path="/registro" element={<Registro />} />
-
-          {/* The loyalty app (bottom nav / top nav shell) */}
-          <Route
-            path="*"
-            element={
-              <AppShell>
-                <Routes>
-                  <Route path="/" element={<Home />} />
+    <AppShell>
+      <Routes>
+        <Route path="/" element={<Home />} />
             <Route path="/vales" element={<Vales />} />
             <Route path="/extravales" element={<Extravales />} />
             <Route path="/vales/:id" element={<ValeDetail />} />
@@ -73,11 +74,27 @@ export default function App() {
             <Route path="/promocion/:id" element={<PromocionDetalle />} />
             <Route path="/favoritos" element={<Favoritos />} />
             <Route path="/mi-visita" element={<MiVisita />} />
-                  <Route path="/notificaciones" element={<Notificaciones />} />
-                </Routes>
-              </AppShell>
-            }
-          />
+        <Route path="/notificaciones" element={<Notificaciones />} />
+      </Routes>
+    </AppShell>
+  );
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <ClubProvider>
+        <NativeBackButton />
+        <Routes>
+          {/* Landing informativa pública — accesible sin cuenta (también en "/" para invitados) */}
+          <Route path="/landing" element={<Landing />} />
+
+          {/* Acceso de usuarios registrados. Si ya hay sesión, /login lleva directo al Home. */}
+          <Route path="/login" element={<LoginRoute />} />
+          <Route path="/registro" element={<Registro />} />
+
+          {/* Raíz + resto de la app: invitado en "/" ve la landing; con sesión ve el Home. */}
+          <Route path="*" element={<AppOrLanding />} />
         </Routes>
       </ClubProvider>
     </BrowserRouter>
