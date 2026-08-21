@@ -3,6 +3,7 @@ import { AppShell } from "@/components/layout/AppShell";
 import { NativeBackButton } from "@/components/system/NativeBackButton";
 import { ClubProvider } from "@/lib/ClubContext";
 import { Landing } from "@/pages/Landing";
+import { AdminApp } from "@/admin/AdminApp";
 import { Login } from "@/pages/Login";
 import { Registro } from "@/pages/Registro";
 import { isLoggedIn } from "@/lib/auth";
@@ -86,6 +87,9 @@ export default function App() {
       <ClubProvider>
         <NativeBackButton />
         <Routes>
+          {/* Backoffice administrativo — sistema aparte, con su propia sesión y shell */}
+          <Route path="/admin/*" element={<AdminApp />} />
+
           {/* Landing informativa pública — accesible sin cuenta (también en "/" para invitados) */}
           <Route path="/landing" element={<Landing />} />
 
