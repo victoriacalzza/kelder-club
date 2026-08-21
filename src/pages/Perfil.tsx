@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Check, ChevronDown, ChevronRight } from "lucide-react";
+import { Check, ChevronDown, ChevronRight, LogOut } from "lucide-react";
 import { TopBar } from "@/components/layout/TopBar";
 import { BackButton } from "@/components/layout/BackButton";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { user } from "@/lib/mock-data";
 import { useClub } from "@/lib/ClubContext";
+import { logout } from "@/lib/auth";
 
 interface Section {
   id: string;
@@ -68,8 +69,14 @@ const initialSections: Section[] = [
 ];
 
 export function Perfil() {
+  const navigate = useNavigate();
   const [sections, setSections] = useState(initialSections);
   const [openId, setOpenId] = useState<string | null>(null);
+
+  function cerrarSesion() {
+    logout();
+    navigate("/landing", { replace: true });
+  }
 
   const done = sections.filter((s) => s.done).length;
   const percent = Math.round((done / sections.length) * 100);
@@ -155,6 +162,15 @@ export function Perfil() {
           </div>
         ))}
       </div>
+
+      {/* Cerrar sesión — termina la sesión y regresa a la landing pública */}
+      <button
+        onClick={cerrarSesion}
+        className="mt-6 flex min-h-[52px] w-full items-center justify-center gap-2 rounded-3xl bg-white text-[15px] font-semibold text-kelder-600 shadow-soft hover:bg-kelder-50"
+      >
+        <LogOut size={18} aria-hidden="true" />
+        Cerrar sesión
+      </button>
     </div>
   );
 }
